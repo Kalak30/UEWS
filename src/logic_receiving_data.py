@@ -5,6 +5,8 @@ from multiprocessing.connection import Client
 from multiprocessing.connection import Listener
 
 import rsdf_parse
+import tspi_calc
+
 
 # border boundaries - in yards
 # These may be stored in some file in the future, so it is easier for them to change
@@ -41,7 +43,7 @@ def main():
     if alertType == 'consecutive':
         alerts = [np.zeros(alertNum, dtype=int)]
     elif alertType == 'cumulative':
-        alerts = [np.zeros(alertNum, alertNumTotal)]
+        alerts = [np.zeros((alertNum, alertNumTotal), dtype=int)]
 
     print("alerts: ", alerts)
 
@@ -49,12 +51,17 @@ def main():
 
     # input data (x,y,z,knot,head)
     input_position = [0, 0, 0, 0, 0]
+    last_position = [0,0,0,0,0]
+    
 
-    # input time
+    # input time, last input time
     input_time = datetime.datetime(1, 1, 1, 1, 1, 1)
-
-    # last input time
     last_time = datetime.datetime(1, 1, 1, 1, 1, 1)
+
+    #speed (x,y,z direction)
+    my_speed = [0,0,0]
+    speed_from_Knots = [0,0,0]
+    my_knots = 0
 
     # server
     address = ('', 5000)
@@ -71,6 +78,12 @@ def main():
                 # parse data
                 r = rsdf_parse.parse_data(msg, input_position, input_time,
                                           last_time)  # if return 3 (no pp) reset last position?
+                seconds = tspi_calc.get_time_diff(input_time, last_time)
+
+                #maybe these should return the arrays?
+                tspi_calc.get_speed(my_speed, input_position, last_position, seconds)
+                tspi_calc.get_speed_from_knots(speed_from_Knots, input_position[3], input_position[4])
+                my_knots = tspi_calc.get_knots(my_speed)
 
         except EOFError as e:
             print("end of file")
