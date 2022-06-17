@@ -6,19 +6,9 @@ from multiprocessing.connection import Listener
 
 import rsdf_parse
 import tspi_calc
+import tspi
+from statics import *
 
-
-# border boundaries - in yards
-# These may be stored in some file in the future, so it is easier for them to change
-chords_inner = [(2500, -1200), (2500, 1000), (3100, 1500), (5900, 1500), (8500, 1500), (10000, 1200), (12100, 870),
-                (14050, 600), (15560, 1100), (15560, -1530), (9000, -1530), (6800, -830), (5800, -680), (5200, -720),
-                (2500, -1200)]
-chords_center = [(2500, -1230), (2500, 1220), (3100, 1680), (5900, 1530), (8500, 1590), (10000, 1220), (12100, 930),
-                 (14050, 1250), (15560, 1500), (15560, -1680), (9000, -1680), (6800, -900), (5800, -800), (5200, -810),
-                 (2500, -1230)]
-chords_outer = [(2500, -1400), (2500, 1900), (3100, 1900), (5900, 1600), (8500, 1740), (10000, 1300), (12100, 1150),
-                (14050, 1350), (15560, 1500), (15560, -1900), (9000, -1900), (6800, -1020), (5800, -970), (5200, -933),
-                (2500, -1400)]
 
 inner_poly = Polygon(chords_inner)
 
@@ -47,21 +37,6 @@ def main():
 
     print("alerts: ", alerts)
 
-    proj_alerts = [0, 0]
-
-    # input data (x,y,z,knot,head)
-    input_position = [0, 0, 0, 0, 0]
-    last_position = [0,0,0,0,0]
-    
-
-    # input time, last input time
-    input_time = datetime.datetime(1, 1, 1, 1, 1, 1)
-    last_time = datetime.datetime(1, 1, 1, 1, 1, 1)
-
-    #speed (x,y,z direction)
-    my_speed = [0,0,0]
-    speed_from_Knots = [0,0,0]
-    my_knots = 0
 
     # server
     address = ('', 5000)
@@ -70,20 +45,18 @@ def main():
     while True:
         client = serv.accept()
         try:
+            # Main loop
             while True:
                 # received_data(client)
                 msg = str(client.recv())
                 print(msg)
 
+                store = tspi.TSPIStore(ttl=5)
                 # parse data
-                r = rsdf_parse.parse_data(msg, input_position, input_time,
-                                          last_time)  # if return 3 (no pp) reset last position?
-                seconds = tspi_calc.get_time_diff(input_time, last_time)
+                new_record = rsdf_parse.parse_data(msg)
+                store.add_record(new_record)
 
-                #maybe these should return the arrays?
-                tspi_calc.get_speed(my_speed, input_position, last_position, seconds)
-                tspi_calc.get_speed_from_knots(speed_from_Knots, input_position[3], input_position[4])
-                my_knots = tspi_calc.get_knots(my_speed)
+                # Actual calculation stuff
 
         except EOFError as e:
             print("end of file")

@@ -1,5 +1,7 @@
 import datetime
 from function_decorators import *
+from tspi import *
+import tspi_calc
 
 
 # Calculates the approximate rolling average given the old average, new value, and the total number of samples
@@ -16,7 +18,6 @@ def parse_pp(words):
 
     # Calculate average PP position if there are multiple
     if parse_pp.seen_pp:
-
         if parse_pp.num_pp < 1:
             print("Have seen a PP record but have not parsed it. Returning value of this PP record")
             return input_position
@@ -48,10 +49,6 @@ def parse_cs(input_time, last_time, seen_pp):
     # TODO: ------ADD CODE TO START COUNTDOWN-----
     if seen_pp is False:
         print("no pp")
-
-        # set the time back to last time PP was sent
-        input_time = last_time
-
         # return 3 to show no PP
         return 3
     else:
@@ -59,8 +56,11 @@ def parse_cs(input_time, last_time, seen_pp):
 
 
 # takes entire message and extracts + updates input position and time
-def parse_data(message, input_position, input_time, last_time):
+def parse_data(message):
     lines = message.split('\n')
+    input_position = list()
+    #input_position = {"x_pos": 0, "y_pos": 0, "z_pos": 0, "knots": 0, "heading": 0}
+    input_time = datetime.datetime(1, 1, 1, 1, 1)
     seen_pp = False
     for line in lines:
 
@@ -73,12 +73,8 @@ def parse_data(message, input_position, input_time, last_time):
 
         # if HS line, get the times, then go to next line
         elif words[0] == "HS":
-            # store and get the next line
-            last_time = input_time
-
             input_time = parse_hs(words)
             print("input time", input_time)
-            print("last time :", last_time)
             continue
 
         elif words[0] == 'PP' and words[4] == '11':
@@ -89,7 +85,11 @@ def parse_data(message, input_position, input_time, last_time):
         # if CS line, then it is the end of message
         elif words[0] == "CS":
             print("\nend of message")
-            return parse_cs(input_time, last_time, seen_pp)
+            parse_cs(input_time, seen_pp)
+            # Calculate X and Y speed from knots and heading
+            x_speed, y_speed = tspi_calc.get_speed_from_knots(knots=input_position[4], heading=input_position[3])
+            return TSPIRecord(x=input_position[0], y=input_position[1], z=input_position[2], x_speed=x_speed,
+                              y_speed=y_speed, time=input_time, heading=input_position[3], knots=input_position[4])
         else:
             continue
 
