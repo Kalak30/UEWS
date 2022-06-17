@@ -93,7 +93,8 @@ def parse_data(message):
                               y_speed=y_speed, time=input_time, heading=input_position[3], knots=input_position[4])
         else:
             continue
-
+    print("never got a CS")
+    return NULL
 
 
 

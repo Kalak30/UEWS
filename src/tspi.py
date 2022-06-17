@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 import datetime
 from collections import deque
 from types import NoneType
@@ -77,6 +78,8 @@ class TSPIStore:
         self.z_total_speed = 0
 
     def add_record(self, record: TSPIRecord):
+        if record == NULL:
+            return
         # record is invalid and we should alert
         if not record.valid:
             invalid_data_alert()
@@ -97,11 +100,13 @@ class TSPIStore:
 
         # Iterates through the oldest records, popping them off if they do not meet ttl
         # Also ensures that the total speeds are kept up to date
-        while self.records[-1].is_old(self.record_ttl, new_time):
+        while len(self.records) > 0 and self.records[-1].is_old(self.record_ttl, new_time):
             self.x_total_speed -= self.records[-1].d_x
             self.y_total_speed -= self.records[-1].d_y
             self.z_total_speed -= self.records[-1].d_z
             self.records.pop()
+        
+        self.records.appendleft(record)
 
     # Returns the newest (leftmost) record
     def get_newest_record(self):
