@@ -38,6 +38,7 @@ def get_knots(my_speed):
     # note: incoming knots only account for xy directions
     return total_knots
 
+
 def get_time_diff(input_time, last_time):
     time_diff = input_time - last_time
     seconds = abs(time_diff.total_seconds())
