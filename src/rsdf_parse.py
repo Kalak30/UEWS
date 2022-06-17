@@ -1,12 +1,5 @@
 import datetime
-
-
-# A decorator to create a static function variable
-def static(name, val):
-    def decorate(func):
-        setattr(func, name, val)
-        return func
-    return decorate
+from function_decorators import *
 
 
 # Calculates the approximate rolling average given the old average, new value, and the total number of samples
