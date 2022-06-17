@@ -32,6 +32,32 @@ def parse_pp(words):
     return input_position
 
 
+# Parses an HS record and return the date time it represents
+def parse_hs(words):
+    try:
+        words = [int(word) for word in words]
+    except ValueError as verr:
+        print(f"Could not convert data to integer: {verr.args}")
+    input_time = datetime.datetime(words[1], words[2], words[3], words[4], words[5], words[6])
+    return input_time
+
+
+# Parses through a CS record and determines if a countdown needs to be started
+def parse_cs(input_time, last_time, seen_pp):
+    # if there was never a PP
+    # TODO: ------ADD CODE TO START COUNTDOWN-----
+    if seen_pp is False:
+        print("no pp")
+
+        # set the time back to last time PP was sent
+        input_time = last_time
+
+        # return 3 to show no PP
+        return 3
+    else:
+        return 0
+
+
 # takes entire message and extracts + updates input position and time
 def parse_data(message, input_position, input_time, last_time):
     lines = message.split('\n')
@@ -50,12 +76,7 @@ def parse_data(message, input_position, input_time, last_time):
             # store and get the next line
             last_time = input_time
 
-            try:
-                words = [int(word) for word in words]
-            except ValueError as verr:
-                print(f"Could not convert data to integer: {verr.args}")
-
-            input_time = datetime.datetime(words[1], words[2], words[3], words[4], words[5], words[6])
+            input_time = parse_hs(words)
             print("input time", input_time)
             print("last time :", last_time)
             continue
@@ -68,18 +89,12 @@ def parse_data(message, input_position, input_time, last_time):
         # if CS line, then it is the end of message
         elif words[0] == "CS":
             print("\nend of message")
-
-            # if there was never a PP
-            # TODO: ------ADD CODE TO START COUNTDOWN-----
-            if seen_pp is False:
-                print("no pp")
-
-                # set the time back to last time PP was sent
-                input_time = last_time
-
-                # return 3 to show no PP
-                return 3
-            else:
-                return 0
+            return parse_cs(input_time, last_time, seen_pp)
         else:
             continue
+
+
+
+
+
+
