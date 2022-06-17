@@ -24,7 +24,7 @@ inner_poly = Polygon(chords_inner)
 
 # needs updating
 def alert_detector(current_position, last_position, current_time, last_time):
-    return 0;
+    return 0
 
 
 # get my_speed in yards per second
@@ -34,9 +34,9 @@ def get_speed(my_speed, current_position, last_position, seconds):
     print(last_position[0])
     # calculated my_speed in each direction with current and last positions (each position is in yards)
     print("seconds: ", seconds)
-    my_speed[0] = (current_position[0] - last_position[0]) / seconds;
-    my_speed[1] = (current_position[1] - last_position[1]) / seconds;
-    my_speed[2] = (current_position[2] - last_position[2]) / seconds;
+    my_speed[0] = (current_position[0] - last_position[0]) / seconds
+    my_speed[1] = (current_position[1] - last_position[1]) / seconds
+    my_speed[2] = (current_position[2] - last_position[2]) / seconds
 
 
 # calculate speed in x and y direction from the given knots and heading values
@@ -66,7 +66,7 @@ def get_knots(my_speed):
 
 
 # config file variables
-alertType = 'consecutive'  # or 'cumulative'
+# alertType = 'consecutive'  # or 'cumulative'
 alertType = 'cumulative'
 alertNum = 3
 alertNumTotal = 5  # only used for cumulative (i.e. 3 out of past 5)
@@ -75,7 +75,7 @@ alertNumTotal = 5  # only used for cumulative (i.e. 3 out of past 5)
 # def setProjPosition(proj_pos, my_speed):
 def main():
     # read in settings from config file?
-
+    alerts = [np.empty(alertNum)]
     # alerts for current position (XYZ positions, depth violation).  Proj is same alerts but for projected position
     if alertType == 'consecutive':
         alerts = [np.zeros(alertNum, dtype=int)]
