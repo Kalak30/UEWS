@@ -1,5 +1,6 @@
 import datetime
 from collections import deque
+from types import NoneType
 import tspi_calc
 from statics import *
 from alert_msgs import invalid_data_alert

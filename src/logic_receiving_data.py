@@ -54,6 +54,7 @@ def main():
                 store = tspi.TSPIStore(ttl=5)
                 # parse data
                 new_record = rsdf_parse.parse_data(msg)
+
                 store.add_record(new_record)
 
                 # Actual calculation stuff

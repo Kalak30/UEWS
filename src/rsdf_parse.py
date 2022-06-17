@@ -35,16 +35,17 @@ def parse_pp(words):
 
 # Parses an HS record and return the date time it represents
 def parse_hs(words):
+    words.pop(0)
     try:
         words = [int(word) for word in words]
     except ValueError as verr:
         print(f"Could not convert data to integer: {verr.args}")
-    input_time = datetime.datetime(words[1], words[2], words[3], words[4], words[5], words[6])
+    input_time = datetime.datetime(words[0], words[1], words[2], words[3], words[4], words[5])
     return input_time
 
 
 # Parses through a CS record and determines if a countdown needs to be started
-def parse_cs(input_time, last_time, seen_pp):
+def parse_cs(seen_pp):
     # if there was never a PP
     # TODO: ------ADD CODE TO START COUNTDOWN-----
     if seen_pp is False:
@@ -85,7 +86,7 @@ def parse_data(message):
         # if CS line, then it is the end of message
         elif words[0] == "CS":
             print("\nend of message")
-            parse_cs(input_time, seen_pp)
+            parse_cs(seen_pp)
             # Calculate X and Y speed from knots and heading
             x_speed, y_speed = tspi_calc.get_speed_from_knots(knots=input_position[4], heading=input_position[3])
             return TSPIRecord(x=input_position[0], y=input_position[1], z=input_position[2], x_speed=x_speed,
