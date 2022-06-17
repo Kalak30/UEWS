@@ -10,7 +10,7 @@ def approx_rolling_avg(old_avg, new_val, number_of_samples):
 # Creating some static variables to make life easier when calculating rolling average
 @static("seen_pp", False)
 @static("num_pp", 0)
-@static("rolling_avg", list())
+@static("rolling_avg", [0, 0, 0, 0, 0])
 def parse_pp(words):
     input_position = list(map(float, [words[1], words[2], words[3], words[10], words[11]]))
 
@@ -25,17 +25,17 @@ def parse_pp(words):
                           zip(input_position, parse_pp.rolling_avg)]
     else:
         print("found pp")
-        seen_pp = True
+        parse_pp.seen_pp = True
 
     parse_pp.num_pp += 1
-    rolling_avg = input_position
+    parse_pp.rolling_avg = input_position
     return input_position
 
 
 # takes entire message and extracts + updates input position and time
 def parse_data(message, input_position, input_time, last_time):
     lines = message.split('\n')
-    first_pp = 1
+    seen_pp = False
     for line in lines:
 
         print(line)
@@ -53,7 +53,7 @@ def parse_data(message, input_position, input_time, last_time):
             try:
                 words = [int(word) for word in words]
             except ValueError as verr:
-                print("Could not convert data to integer")
+                print(f"Could not convert data to integer: {verr.args}")
 
             input_time = datetime.datetime(words[1], words[2], words[3], words[4], words[5], words[6])
             print("input time", input_time)
@@ -61,16 +61,17 @@ def parse_data(message, input_position, input_time, last_time):
             continue
 
         elif words[0] == 'PP' and words[4] == '11':
-            parse_pp(words)
+            input_position = parse_pp(words)
+            seen_pp = True
             continue
 
-        # if CS line, then it is th end of message
+        # if CS line, then it is the end of message
         elif words[0] == "CS":
             print("\nend of message")
 
             # if there was never a PP
             # TODO: ------ADD CODE TO START COUNTDOWN-----
-            if first_pp == 1:
+            if seen_pp is False:
                 print("no pp")
 
                 # set the time back to last time PP was sent
