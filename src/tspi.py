@@ -1,10 +1,13 @@
+from asyncio.windows_events import NULL
 import datetime
 from collections import deque
-import tspi_calc
 import logging
-
+from msilib import knownbits
+from types import NoneType
+import tspi_calc
 from statics import *
 from alert_msgs import invalid_data_alert
+
 
 
 # Represents the spacial and temporal data from a single RSDF message received from RDMS
@@ -50,10 +53,12 @@ class TSPIRecord:
 
     # sets the change in speed from this record to the other record in feet per second
     def delta_from_record(self, other):
+        logging.debug(f"current x pos: {self.x}")
+        logging.debug(f"past x pos: {other.x}")
         d_t = tspi_calc.get_time_diff(self.time, other.time)
-        self.d_x = tspi_calc.get_delta(self.x_speed, other.x_speed, d_t)
-        self.d_y = tspi_calc.get_delta(self.y_speed, other.x_speed, d_t)
-        self.d_z = tspi_calc.get_delta(self.z_speed, other.x_speed, d_t)
+        self.d_x = tspi_calc.get_delta(self.x, other.x, d_t)
+        self.d_y = tspi_calc.get_delta(self.y, other.y, d_t)
+        self.d_z = tspi_calc.get_delta(self.z, other.z, d_t)
 
     # Gets called upon creation and changing the pose of the record
     def validate_pos(self):
@@ -63,7 +68,14 @@ class TSPIRecord:
             self.valid = False
             return
         self.valid = True
-
+    
+    def print_values(self):
+        logging.debug("Printing record values: ")
+        logging.debug(f"x: {self.x}, y: {self.y}, z: {self.z}")
+        logging.debug(f"d_x: {self.d_x}, d_y: {self.d_y}, d_z: {self.d_z} ")
+        logging.debug(f"x_speed: {self.x_speed}, y_speed: {self.y_speed}")
+        logging.debug(f"heading: {self.heading}, knots: {self.knots}, time: {self.time} ")
+        logging.debug("end values printing\n")
 
 # Store records in a Deque while their time is within the ttl
 # Maintains sums of directional speeds to quicly calculate average speed over entire store
@@ -78,7 +90,9 @@ class TSPIStore:
         self.z_total_speed = 0
 
     def add_record(self, record: TSPIRecord):
-        if record is None:
+        if record == NULL:
+            return
+        if record == None:
             return
         # record is invalid and we should alert
         if not record.valid:
@@ -105,14 +119,23 @@ class TSPIStore:
             self.y_total_speed -= self.records[-1].d_y
             self.z_total_speed -= self.records[-1].d_z
             self.records.pop()
+            logging.debug("Popped old record")
+        
         
         self.records.appendleft(record)
+        logging.debug(f"len after appending: {len(self.records)}")
 
     # Returns the newest (leftmost) record
     def get_newest_record(self):
-        return self.records.popleft()
+        return self.records[0]
+        #return self.records.popleft()
 
     # Gets the average x, y, and z speeds using the maintained sums and length of Deque
     def get_average_speeds(self):
         record_len = len(self.records)
         return [self.x_total_speed/record_len, self.y_total_speed/record_len, self.z_total_speed/record_len]
+
+    def print_all_records(self):
+        logging.debug("\nPrinting all records:\n")
+        for record in self.records:
+            record.print_values()

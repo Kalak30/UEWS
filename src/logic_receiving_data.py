@@ -47,13 +47,14 @@ def main():
     while True:
         client = serv.accept()
         try:
+            #create tspi store with specified time to live (ttl)
+            store = tspi.TSPIStore(ttl=7)
             # Main loop
             while True:
                 # received_data(client)
                 msg = str(client.recv())
                 print(msg)
 
-                store = tspi.TSPIStore(ttl=5)
                 # parse data
                 new_record = rsdf_parse.parse_data(msg)
                 # If new_record is pp : alert.pp_output()
