@@ -57,9 +57,11 @@ def main():
 
                 # parse data
                 new_record = rsdf_parse.parse_data(msg)
+                # If new_record is pp : alert.pp_output()
 
+                # If code 11 do the following
                 store.add_record(new_record)
-                store.print_all_records()
+                # Reset alert_processor.no_sub_data_timer
 
                 # Actual calculation stuff
 
