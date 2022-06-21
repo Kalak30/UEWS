@@ -54,6 +54,8 @@ def parse_cs(seen_pp):
         # return 3 to show no PP
         return 3
     else:
+        print("reset seen PP for next message")
+        parse_pp.seen_pp = False
         return 0
 
 
@@ -66,7 +68,7 @@ def parse_data(message):
     seen_pp = False
     for line in lines:
 
-        print(line)
+        #print(line)
         words = line.split(' ')
 
         # if blank, go to next line
@@ -90,8 +92,10 @@ def parse_data(message):
             parse_cs(seen_pp)
             # Calculate X and Y speed from knots and heading
             x_speed, y_speed = tspi_calc.get_speed_from_knots(knots=input_position[4], heading=input_position[3])
-            return TSPIRecord(x=input_position[0], y=input_position[1], z=input_position[2], x_speed=x_speed,
+            new_record = TSPIRecord(x=input_position[0], y=input_position[1], z=input_position[2], x_speed=x_speed,
                               y_speed=y_speed, time=input_time, heading=input_position[3], knots=input_position[4])
+
+            return new_record
         else:
             continue
     print("never got a CS")

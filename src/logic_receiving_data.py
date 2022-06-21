@@ -47,6 +47,8 @@ def main():
     while True:
         client = serv.accept()
         try:
+            #create tspi store with specified time to live (ttl)
+            store = tspi.TSPIStore(ttl=7)
             # Main loop
             while True:
                 # received_data(client)
