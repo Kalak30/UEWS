@@ -18,5 +18,5 @@ chords_outer = [(2500, -1400), (2500, 1900), (3100, 1900), (5900, 1600), (8500, 
                 (2500, -1400)]
 
 # Path to config file
-config_path = './config/config.yaml'
+config_path = '../config/config.yaml'
 logger_config_path = './config/logger_config.ini'

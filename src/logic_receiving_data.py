@@ -8,6 +8,7 @@ import rsdf_parse
 import tspi_calc
 import tspi
 from statics import *
+import configurator
 
 
 inner_poly = Polygon(chords_inner)
@@ -27,6 +28,7 @@ def alert_detector(current_position, last_position, current_time, last_time):
 
 # def setProjPosition(proj_pos, my_speed):
 def main():
+    config_args = configurator.get_config()
     # read in settings from config file?
     alerts = [np.empty(alertNum)]
     # alerts for current position (XYZ positions, depth violation).  Proj is same alerts but for projected position

@@ -1,8 +1,9 @@
-import datetime
 from function_decorators import *
 from tspi import *
 import tspi_calc
+import logging
 
+logger = logging.getLogger(__name__)
 
 # Calculates the approximate rolling average given the old average, new value, and the total number of samples
 def approx_rolling_avg(old_avg, new_val, number_of_samples):
@@ -19,7 +20,7 @@ def parse_pp(words):
     # Calculate average PP position if there are multiple
     if parse_pp.seen_pp:
         if parse_pp.num_pp < 1:
-            print("Have seen a PP record but have not parsed it. Returning value of this PP record")
+            logger.info("Have seen a PP record but have not parsed it. Returning value of this PP record")
             return input_position
 
         input_position = [approx_rolling_avg(avg_val, ip_val, parse_pp.num_pp) for avg_val, ip_val in
@@ -94,7 +95,7 @@ def parse_data(message):
         else:
             continue
     print("never got a CS")
-    return NULL
+    return None
 
 
 

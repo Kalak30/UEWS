@@ -3,4 +3,3 @@ port: 4334
 ttl: 5
 dt: 5
 tlt: 10
-debug:

@@ -1,8 +1,8 @@
-from asyncio.windows_events import NULL
 import datetime
 from collections import deque
-from types import NoneType
 import tspi_calc
+import logging
+
 from statics import *
 from alert_msgs import invalid_data_alert
 
@@ -78,7 +78,7 @@ class TSPIStore:
         self.z_total_speed = 0
 
     def add_record(self, record: TSPIRecord):
-        if record == NULL:
+        if record is None:
             return
         # record is invalid and we should alert
         if not record.valid:
