@@ -7,6 +7,7 @@ import logging.config
 
 # Local imports
 import statics
+import alert_msgs
 
 logger = logging.getLogger(__name__)
 
@@ -14,27 +15,32 @@ logger = logging.getLogger(__name__)
 # Gets the configuration variables from the args namespace and loads additional variables from the default config
 def get_configurations(args):
     # Set working directory to top level in directory tree
-    arg_dict = vars(args)
+    cli_dict = vars(args)
 
-    if arg_dict["config"] is not None:
-        statics.config_path = arg_dict["config"]
+    if cli_dict["config"] is not None:
+        statics.config_path = cli_dict["config"]
     else:
-        arg_dict["config"] = statics.config_path
+        cli_dict["config"] = statics.config_path
 
-    with open(arg_dict["config"]) as file:
-        loaded_dict = yaml.load(file, Loader=yaml.FullLoader)
+    with open(cli_dict["config"]) as file:
+        file_dict = yaml.load(file, Loader=yaml.FullLoader)
 
         log_file_path = path.join(path.dirname(path.abspath('')), statics.logger_config_path)
         logging.config.fileConfig(log_file_path)
 
-        for arg in loaded_dict:
-            if arg in arg_dict:
+        for arg in file_dict:
+            if arg in cli_dict:
                 # Only overwrite the values that have not been specified on command line
-                if arg_dict[arg] is None:
-                    arg_dict[arg] = loaded_dict[arg]
+                if cli_dict[arg] is None:
+                    cli_dict[arg] = file_dict[arg]
             else:
-                logger.warning(f" Argument \"{arg}\" in  \"{arg_dict['config']}\" not a recognised argument. Proceeding "
-                               f"with loading.")
+                # Alert params cannot yet be specified on cli
+                if arg == "alert_params":
+                    for param in file_dict[arg]:
+                        cli_dict[param] = file_dict[arg][param]
+                else:
+                    logger.warning(f" Argument \"{arg}\" in  \"{cli_dict['config']}\" not a recognised argument. "
+                                   f"Proceeding with loading.")
 
 
 def parser_setup():
@@ -58,7 +64,11 @@ def get_config():
     parser = parser_setup()
     args = parser.parse_args()
     get_configurations(args)
-    return args
+
+    argv = vars(args)
+    alert_msgs.config_alert_processor(argv["invalid_data_max_count"], argv["depth_violation_max_count"],
+                                      argv["proj_pos_violation_max_count"])
+    return argv
 
 
 if __name__ == "__main__":
