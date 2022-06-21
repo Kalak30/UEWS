@@ -55,11 +55,11 @@ def main():
                 msg = str(client.recv())
                 print(msg)
 
-                store = tspi.TSPIStore(ttl=5)
                 # parse data
                 new_record = rsdf_parse.parse_data(msg)
 
                 store.add_record(new_record)
+                store.print_all_records()
 
                 # Actual calculation stuff
 

@@ -92,6 +92,8 @@ class TSPIStore:
     def add_record(self, record: TSPIRecord):
         if record == NULL:
             return
+        if record == None:
+            return
         # record is invalid and we should alert
         if not record.valid:
             invalid_data_alert()
