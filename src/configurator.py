@@ -70,6 +70,3 @@ def get_config():
                                       argv["proj_pos_violation_max_count"])
     return argv
 
-
-if __name__ == "__main__":
-    get_config()
