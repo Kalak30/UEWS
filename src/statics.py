@@ -1,3 +1,6 @@
+"""
+Contains static data that can be accessed from any module
+"""
 # Values in feet
 x_outlier = {"lower": 7500, "upper": 46680}
 y_outlier = {"lower": -6600, "upper": 6600}
@@ -18,5 +21,5 @@ chords_outer = [(2500, -1400), (2500, 1900), (3100, 1900), (5900, 1600), (8500, 
                 (2500, -1400)]
 
 # Path to config file
-config_path = '../config/config.yaml'
-logger_config_path = './config/logger_config.ini'
+CONFIG_PATH = '../config/config.yaml'
+LOGGER_CONFIG_PATH = './config/logger_config.ini'

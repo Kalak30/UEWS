@@ -1,4 +1,5 @@
 import math
+from tspi import Vector
 from statics import *
 
 
@@ -7,9 +8,10 @@ def get_delta(s1, s2, seconds):
 
 
 # Gets called upon creation and changing the pose of the record
-def validate_pos(self, x, y, z, knots):
-    if x < x_outlier["lower"] or x > x_outlier["upper"] or y < y_outlier["lower"] or \
-            y > y_outlier["upper"] or z < z_outlier["lower"] or z > z_outlier["upper"] or \
+def validate_pos(pos: Vector, knots):
+
+    if pos.x < x_outlier["lower"] or pos.x > x_outlier["upper"] or pos.y < y_outlier["lower"] or \
+            pos.y > y_outlier["upper"] or pos.z < z_outlier["lower"] or pos.z > z_outlier["upper"] or \
             knots > speed_outlier["upper"]:
         return False
     return True
@@ -58,8 +60,8 @@ def get_time_diff(input_time, last_time):
     time_diff = input_time - last_time
     seconds = abs(time_diff.total_seconds())
 
-    #check if no time diff, avoids divide by zero error
-    if(seconds == 0):
+    # Check if no time diff, avoids divide by zero error
+    if seconds == 0:
         print("no time difference")
         seconds = 1000000
 
