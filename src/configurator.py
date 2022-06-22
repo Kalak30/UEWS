@@ -7,15 +7,16 @@ use."""
 
 # Python Package imports
 import locale
-from os import path
 import argparse
 import logging
 import logging.config
 import yaml
-
+from os import path
+from schema import SchemaError
 
 # Local imports
 import statics
+import conf_schema
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,13 @@ def load_conf_file(args):
     with open(cli_dict["config"], mode='r', encoding=locale.getpreferredencoding()) as file:
         file_dict = yaml.load(file, Loader=yaml.FullLoader)
 
+        try:
+            conf_schema.conf_schema.validate(file_dict)
+            logger.debug("Successfully Loaded Config")
+        except SchemaError as se:
+            logger.error(se)
+            exit(1)
+
         log_file_path = path.join(path.dirname(path.abspath('')), statics.LOGGER_CONFIG_PATH)
         logging.config.fileConfig(log_file_path)
 
@@ -47,13 +55,9 @@ def load_conf_file(args):
                 if cli_dict[arg] is None:
                     cli_dict[arg] = file_dict[arg]
             else:
-                # Alert params cannot yet be specified on cli
-                if arg == "alert_params":
-                    for param in file_dict[arg]:
-                        cli_dict[param] = file_dict[arg][param]
-                else:
-                    logger.warning(f" Argument \"{arg}\" in  \"{cli_dict['config']}\" not a recognised argument. "
-                                   f"Proceeding with loading.")
+                cli_dict[arg] = file_dict[arg]
+                # logger.warning(f" Argument \"{arg}\" in  \"{cli_dict['config']}\" not a recognised argument. "
+                #                f"Proceeding with loading.")
 
 
 def parser_setup():
@@ -91,3 +95,7 @@ def get_config():
 
     argv = vars(args)
     return argv
+
+
+args = get_config()
+print(args)
