@@ -8,6 +8,7 @@ use."""
 # Python Package imports
 import locale
 import argparse
+import flatdict
 import logging
 import logging.config
 import yaml
@@ -46,16 +47,23 @@ def load_conf_file(args):
             logger.error(se)
             exit(1)
 
+        # Make the yaml input into a flat dictionary without concatenated names
+        flat_dict = flatdict.FlatDict(file_dict, delimiter='.')
+        config_dict = dict()
+        for k in flat_dict.keys():
+            new_key = k.split('.')[-1]
+            config_dict[new_key] = flat_dict.pop(k)
+
         log_file_path = path.join(path.dirname(path.abspath('')), statics.LOGGER_CONFIG_PATH)
         logging.config.fileConfig(log_file_path)
 
-        for arg in file_dict:
+        for arg in config_dict:
             if arg in cli_dict:
                 # Only overwrite the values that have not been specified on command line
                 if cli_dict[arg] is None:
-                    cli_dict[arg] = file_dict[arg]
+                    cli_dict[arg] = config_dict[arg]
             else:
-                cli_dict[arg] = file_dict[arg]
+                cli_dict[arg] = config_dict[arg]
                 # logger.warning(f" Argument \"{arg}\" in  \"{cli_dict['config']}\" not a recognised argument. "
                 #                f"Proceeding with loading.")
 
