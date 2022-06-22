@@ -14,13 +14,6 @@ import configurator
 inner_poly = Polygon(chords_inner)
 
 
-# config file variables
-# alertType = 'consecutive'  # or 'cumulative'
-alertType = 'cumulative'
-alertNum = 3
-alertNumTotal = 5  # only used for cumulative (i.e. 3 out of past 5)
-
-
 # needs updating
 def alert_detector(current_position, last_position, current_time, last_time):
     return 0
@@ -29,16 +22,6 @@ def alert_detector(current_position, last_position, current_time, last_time):
 # def setProjPosition(proj_pos, my_speed):
 def main():
     config_args = configurator.get_config()
-    # read in settings from config file?
-    alerts = [np.empty(alertNum)]
-    # alerts for current position (XYZ positions, depth violation).  Proj is same alerts but for projected position
-    if alertType == 'consecutive':
-        alerts = [np.zeros(alertNum, dtype=int)]
-    elif alertType == 'cumulative':
-        alerts = [np.zeros((alertNum, alertNumTotal), dtype=int)]
-
-    print("alerts: ", alerts)
-
 
     # server
     address = ('', 5000)
