@@ -1,8 +1,18 @@
 import math
+from statics import *
 
 
 def get_delta(s1, s2, seconds):
     return (s1 - s2) / seconds
+
+
+# Gets called upon creation and changing the pose of the record
+def validate_pos(self, x, y, z, knots):
+    if x < x_outlier["lower"] or x > x_outlier["upper"] or y < y_outlier["lower"] or \
+            y > y_outlier["upper"] or z < z_outlier["lower"] or z > z_outlier["upper"] or \
+            knots > speed_outlier["upper"]:
+        return False
+    return True
 
 
 # get my_speed in yards per second

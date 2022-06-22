@@ -35,7 +35,7 @@ def main():
             # Main loop
             while True:
                 # received_data(client)
-                msg = str(client.recv())
+                msg = str(client.recv()) # Blocking
                 print(msg)
 
                 # parse data
