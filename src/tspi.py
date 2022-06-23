@@ -57,9 +57,10 @@ class TSPIRecord:
         logger.debug(f"current x pos: {self.position.x}")
         logger.debug(f"past x pos: {other.position.x}")
         d_t = tspi_calc.get_time_diff(self.time, other.time)
-        self.deltas.x = tspi_calc.get_delta(self.position.x, other.position.x, d_t)
-        self.deltas.x = tspi_calc.get_delta(self.position.x, other.position.y, d_t)
-        self.deltas.x = tspi_calc.get_delta(self.position.x, other.position.z, d_t)
+        dx = tspi_calc.get_delta(self.position.x, other.position.x, d_t)
+        dy = tspi_calc.get_delta(self.position.y, other.position.y, d_t)
+        dz = tspi_calc.get_delta(self.position.z, other.position.z, d_t)
+        self.deltas = Vector(x=dx, y=dy, z=dz)
 
     def print_values(self):
         """Prints values out to the logger"""
@@ -80,6 +81,20 @@ class TSPIStore:
         self.records = deque()
         self.record_ttl = ttl
         self.total_speeds = Vector(0, 0, 0)
+
+    def increase_totals(self, deltas: Vector):
+        """Increase the totals vector"""
+        new_x = self.total_speeds.x + deltas.x
+        new_y = self.total_speeds.y + deltas.y
+        new_z = self.total_speeds.z + deltas.z
+        self.total_speeds = Vector(x=new_x, y=new_y, z=new_z)
+
+    def decrease_totals(self, deltas: Vector):
+        """Decrease the totals tuple"""
+        new_x = self.total_speeds.x - deltas.x
+        new_y = self.total_speeds.y - deltas.y
+        new_z = self.total_speeds.z - deltas.z
+        self.total_speeds = Vector(x=new_x, y=new_y, z=new_z)
 
     def add_record(self, record: TSPIRecord):
         """Adds a new record to the store. At the same time removes any stale records.
@@ -102,10 +117,8 @@ class TSPIStore:
         else:
             record.delta_from_record(self.records[0])
 
-        # Update stored total speeds
-        self.total_speeds.x += record.deltas.x
-        self.total_speeds.y += record.deltas.y
-        self.total_speeds.z += record.deltas.z
+        # Update stored total speeds. Must create a new Vector tuple as tuples are immutable
+        self.increase_totals(deltas=record.deltas)
 
         # Iterates through the oldest records, popping them off if they do not meet ttl
         # Also ensures that the total speeds are kept up to date

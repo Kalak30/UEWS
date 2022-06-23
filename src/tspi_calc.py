@@ -10,9 +10,9 @@ def get_delta(s1, s2, seconds):
 # Gets called upon creation and changing the pose of the record
 def validate_pos(pos: Vector, knots):
 
-    if pos.x < x_outlier["lower"] or pos.x > x_outlier["upper"] or pos.y < y_outlier["lower"] or \
-            pos.y > y_outlier["upper"] or pos.z < z_outlier["lower"] or pos.z > z_outlier["upper"] or \
-            knots > speed_outlier["upper"]:
+    if pos.x < x_outlier.lower or pos.x > x_outlier.upper or pos.y < y_outlier.lower or \
+            pos.y > y_outlier.upper or pos.z < z_outlier.lower or pos.z > z_outlier.upper or \
+            knots > speed_outlier.upper:
         return False
     return True
 

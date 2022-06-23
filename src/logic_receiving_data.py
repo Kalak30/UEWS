@@ -1,6 +1,6 @@
 import datetime
 import numpy as np
-from shapely.geometry import Point, Polygon
+
 from multiprocessing.connection import Client
 from multiprocessing.connection import Listener
 
@@ -9,9 +9,6 @@ import tspi_calc
 import tspi
 from statics import *
 import configurator
-
-
-inner_poly = Polygon(chords_inner)
 
 
 # needs updating
