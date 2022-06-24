@@ -102,10 +102,6 @@ def get_config():
     load_conf_file(args)
 
     argv = vars(args)
-<<<<<<< HEAD
-
-=======
->>>>>>> 3fae0971e804bcb62b5d6827c60c9492794c38d8
     return argv
 
 

@@ -37,13 +37,8 @@ def main():
             # Main loop
             while True:
                 # received_data(client)
-<<<<<<< HEAD
-                msg = str(client.recv())
-                #print(msg)
-=======
                 msg = str(client.recv()) # Blocking
                 print(msg)
->>>>>>> 3fae0971e804bcb62b5d6827c60c9492794c38d8
 
                 #message recived, rest pp timer
                 
