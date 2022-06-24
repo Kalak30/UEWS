@@ -1,6 +1,6 @@
 import datetime
 import numpy as np
-from shapely.geometry import Point, Polygon
+
 from multiprocessing.connection import Client
 from multiprocessing.connection import Listener
 
@@ -13,9 +13,6 @@ import alert_processor
 import logging
 
 logger = logging.getLogger(__name__)
-
-inner_poly = Polygon(chords_inner)
-
 
 # needs updating
 def alert_detector(current_position, last_position, current_time, last_time):
@@ -40,8 +37,13 @@ def main():
             # Main loop
             while True:
                 # received_data(client)
+<<<<<<< HEAD
                 msg = str(client.recv())
                 #print(msg)
+=======
+                msg = str(client.recv()) # Blocking
+                print(msg)
+>>>>>>> 3fae0971e804bcb62b5d6827c60c9492794c38d8
 
                 #message recived, rest pp timer
                 

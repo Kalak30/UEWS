@@ -1,37 +1,28 @@
-from asyncio.windows_events import NULL
+"""Defines TSPIRecord and TSPIStore. These are used to store
+Spacial and temporal information received in RSDF messages. """
 import datetime
-from collections import deque
 import logging
-from msilib import knownbits
-from types import NoneType
 import tspi_calc
-from statics import *
-from alert_msgs import invalid_data_alert
+from collections import deque, namedtuple
 
 
+logger = logging.getLogger(__name__)
+Vector = namedtuple("Vector", "x y z")
 
-# Represents the spacial and temporal data from a single RSDF message received from RDMS
-# Validates whether a supplied position and knots is normal
-# Calculates changes in x, y, and z positions between this record and previous record when added to TSPIStore
+
 class TSPIRecord:
-    def __init__(self, x, y, z, x_speed, y_speed, knots, heading, time):
+    """Represents the spacial and temporal data from a single RSDF message received from RDMS
+        Validates whether a supplied position and knots is normal
+        Calculates changes in x, y, and z positions between this record and previous record when added to TSPIStore
+    """
+    def __init__(self, position: Vector, speed: Vector, knots, heading, time):
         # sets the position, speed and heading after doing a validation check
-        self.x = 0
-        self.y = 0
-        self.z = 0
+        self.position = Vector(0, 0, 0)
+        self.speed = speed
+        self.deltas = Vector(0, 0, 0)
         self.knots = 0
         self.heading = 0
-        self.set_pose(x, y, z, knots, heading)
-
-        # Speed in feet per second
-        self.x_speed = x_speed
-        self.y_speed = y_speed
-
-        # Gets updated upon addition to a TSPIStore object
-        self.z_speed = 0
-        self.d_x = 0
-        self.d_y = 0
-        self.d_z = 0
+        self.set_pose(position, knots, heading)
 
         # Time in datetime format
         self.time = time
@@ -40,102 +31,118 @@ class TSPIRecord:
         self.valid = True
 
     def is_old(self, ttl, curr_time: datetime):
+        """Used to determine if this record is too old to keep around anymore
+        :param ttl how long a record should be allowed to live
+        :param curr_time the current time.
+        :return boolean stating if record should be forgotten about"""
         return tspi_calc.get_time_diff(curr_time, self.time) > ttl
 
-    def set_pose(self, x, y, z, knots, heading):
-        self.validate_pos()
-        self.x, self.y, self.z, self.knots, self.heading = x, y, z, knots, heading
+    #
+    def set_pose(self, pos: Vector, knots, heading):
+        """Update position and knots, even if position is invalid
+        :param pos Vector containing x, y, z coordinates of the position in sub
+        :param knots speed in knots. Either calculated or received in message
+        :param heading angle the sub is facing"""
+
+        self.valid = tspi_calc.validate_pos(pos, knots)
+        self.position = pos
+        self.knots, self.heading = knots, heading
 
     def set_delta(self, x, y, z):
-        self.d_x = x
-        self.d_y = y
-        self.d_z = z
+        self.deltas = Vector(x, y, z)
 
-    # sets the change in speed from this record to the other record in feet per second
     def delta_from_record(self, other):
-        logging.debug(f"current x pos: {self.x}")
-        logging.debug(f"past x pos: {other.x}")
+        """Sets the change in speed from this record to the other record in feet per second
+        :param other Another record. Ideally used if other is the previous record created"""
+        logger.debug(f"current x pos: {self.position.x}")
+        logger.debug(f"past x pos: {other.position.x}")
         d_t = tspi_calc.get_time_diff(self.time, other.time)
-        self.d_x = tspi_calc.get_delta(self.x, other.x, d_t)
-        self.d_y = tspi_calc.get_delta(self.y, other.y, d_t)
-        self.d_z = tspi_calc.get_delta(self.z, other.z, d_t)
+        dx = tspi_calc.get_delta(self.position.x, other.position.x, d_t)
+        dy = tspi_calc.get_delta(self.position.y, other.position.y, d_t)
+        dz = tspi_calc.get_delta(self.position.z, other.position.z, d_t)
+        self.deltas = Vector(x=dx, y=dy, z=dz)
 
-    # Gets called upon creation and changing the pose of the record
-    def validate_pos(self):
-        if self.x < x_outlier["lower"] or self.x > x_outlier["upper"] or self.y < y_outlier["lower"] or \
-                self.y > y_outlier["upper"] or self.z < z_outlier["lower"] or self.z > z_outlier["upper"] or \
-                self.knots > speed_outlier["upper"]:
-            self.valid = False
-            return
-        self.valid = True
-    
     def print_values(self):
+        """Prints values out to the logger"""
         logging.debug("Printing record values: ")
-        logging.debug(f"x: {self.x}, y: {self.y}, z: {self.z}")
-        logging.debug(f"d_x: {self.d_x}, d_y: {self.d_y}, d_z: {self.d_z} ")
-        logging.debug(f"x_speed: {self.x_speed}, y_speed: {self.y_speed}")
+        logging.debug(f"x: {self.position.x}, y: {self.position.y}, z: {self.position.z}")
+        logging.debug(f"d_x: {self.deltas.x}, d_y: {self.deltas.y}, d_z: {self.deltas.z} ")
+        logging.debug(f"x_speed: {self.speed.x}, y_speed: {self.speed.y}")
         logging.debug(f"heading: {self.heading}, knots: {self.knots}, time: {self.time} ")
         logging.debug("end values printing\n")
 
-# Store records in a Deque while their time is within the ttl
-# Maintains sums of directional speeds to quicly calculate average speed over entire store
-# Alerts if attempting to add an invalid record
+
 class TSPIStore:
+    """Store records in a Deque while their time is within the ttl
+        Maintains sums of directional speeds to quicly calculate average speed over entire store
+        Alerts if attempting to add an invalid record"""
     def __init__(self, ttl):
         # Oldest record on right, the newest record on left
         self.records = deque()
         self.record_ttl = ttl
-        self.x_total_speed = 0
-        self.y_total_speed = 0
-        self.z_total_speed = 0
+        self.total_speeds = Vector(0, 0, 0)
+
+    def increase_totals(self, deltas: Vector):
+        """Increase the totals vector"""
+        new_x = self.total_speeds.x + deltas.x
+        new_y = self.total_speeds.y + deltas.y
+        new_z = self.total_speeds.z + deltas.z
+        self.total_speeds = Vector(x=new_x, y=new_y, z=new_z)
+
+    def decrease_totals(self, deltas: Vector):
+        """Decrease the totals tuple"""
+        new_x = self.total_speeds.x - deltas.x
+        new_y = self.total_speeds.y - deltas.y
+        new_z = self.total_speeds.z - deltas.z
+        self.total_speeds = Vector(x=new_x, y=new_y, z=new_z)
 
     def add_record(self, record: TSPIRecord):
-        if record == NULL:
-            return
-        if record == None:
+        """Adds a new record to the store. At the same time removes any stale records.
+            Updates the total speed values when a record is added or deleted.
+        :param record The TSPIRecord that needs to be added. Can be None
+            """
+
+        if record is None:
             return
         # record is invalid and we should alert
         if not record.valid:
-            invalid_data_alert()
+            #invalid_data_alert()
             return
 
         new_time = record.time
 
         # Check to make sure we don't access an empty record
         if len(self.records) == 0:
-            record.set_delta(record.x, record.y, record.z)
+            record.set_delta(record.position.x, record.position.y, record.position.z)
         else:
             record.delta_from_record(self.records[0])
 
-        # Update stored total speeds
-        self.x_total_speed += record.d_x
-        self.y_total_speed += record.d_y
-        self.z_total_speed += record.d_z
+        # Update stored total speeds. Must create a new Vector tuple as tuples are immutable
+        self.increase_totals(deltas=record.deltas)
 
         # Iterates through the oldest records, popping them off if they do not meet ttl
         # Also ensures that the total speeds are kept up to date
         while len(self.records) > 0 and self.records[-1].is_old(self.record_ttl, new_time):
-            self.x_total_speed -= self.records[-1].d_x
-            self.y_total_speed -= self.records[-1].d_y
-            self.z_total_speed -= self.records[-1].d_z
+            self.total_speeds.x -= self.records[-1].deltas.x
+            self.total_speeds.y -= self.records[-1].deltas.y
+            self.total_speeds.z -= self.records[-1].deltas.z
             self.records.pop()
-            logging.debug("Popped old record")
-        
-        
+            logger.debug("Popped old record")
+
         self.records.appendleft(record)
         logging.debug(f"len after appending: {len(self.records)}")
 
-    # Returns the newest (leftmost) record
     def get_newest_record(self):
+        """Returns the newest (leftmost) record"""
         return self.records[0]
-        #return self.records.popleft()
 
-    # Gets the average x, y, and z speeds using the maintained sums and length of Deque
     def get_average_speeds(self):
+        """Gets the average x, y, and z speeds using the maintained sums and length of Deque"""
         record_len = len(self.records)
-        return [self.x_total_speed/record_len, self.y_total_speed/record_len, self.z_total_speed/record_len]
+        return [(k, val/record_len) for k, val in self.total_speeds]
 
     def print_all_records(self):
+        """Prints all records within the store"""
         logging.debug("\nPrinting all records:\n")
         for record in self.records:
             record.print_values()

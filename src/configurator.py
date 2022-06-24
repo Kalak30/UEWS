@@ -1,49 +1,80 @@
+"""Get configuration data.
+
+Allows for configuration data to be passed in by
+A YAML file, or by command line arguments. A YAML
+file provides more customization and is easier to
+use."""
+
 # Python Package imports
-from os import path
+import locale
 import argparse
-import yaml
+import flatdict
 import logging
 import logging.config
+import yaml
+from os import path
+from schema import SchemaError
 
 # Local imports
 import statics
-import alert_msgs
+import conf_schema
 
 logger = logging.getLogger(__name__)
 
 
 # Gets the configuration variables from the args namespace and loads additional variables from the default config
-def get_configurations(args):
-    # Set working directory to top level in directory tree
+def load_conf_file(args):
+    """
+    Loads additional config variables from the specified config file into the args namespace
+    Defaults to "../config/config.yaml if no file given
+    :param args namespace object containing args
+    :return updated values within args
+    """
     cli_dict = vars(args)
 
     if cli_dict["config"] is not None:
-        statics.config_path = cli_dict["config"]
+        statics.CONFIG_PATH = cli_dict["config"]
     else:
-        cli_dict["config"] = statics.config_path
+        cli_dict["config"] = statics.CONFIG_PATH
 
-    with open(cli_dict["config"]) as file:
+    with open(cli_dict["config"], mode='r', encoding=locale.getpreferredencoding()) as file:
         file_dict = yaml.load(file, Loader=yaml.FullLoader)
 
-        log_file_path = path.join(path.dirname(path.abspath('')), statics.logger_config_path)
+        try:
+            conf_schema.conf_schema.validate(file_dict)
+            logger.debug("Successfully Loaded Config")
+        except SchemaError as se:
+            logger.error(se)
+            exit(1)
+
+        # Make the yaml input into a flat dictionary without concatenated names
+        flat_dict = flatdict.FlatDict(file_dict, delimiter='.')
+        config_dict = dict()
+        for k in flat_dict.keys():
+            new_key = k.split('.')[-1]
+            config_dict[new_key] = flat_dict.pop(k)
+
+        log_file_path = path.join(path.dirname(path.abspath('')), statics.LOGGER_CONFIG_PATH)
         logging.config.fileConfig(log_file_path)
 
-        for arg in file_dict:
+        for arg in config_dict:
             if arg in cli_dict:
                 # Only overwrite the values that have not been specified on command line
                 if cli_dict[arg] is None:
-                    cli_dict[arg] = file_dict[arg]
+                    cli_dict[arg] = config_dict[arg]
             else:
-                # Alert params cannot yet be specified on cli
-                if arg == "alert_params":
-                    for param in file_dict[arg]:
-                        cli_dict[param] = file_dict[arg][param]
-                else:
-                    logger.warning(f" Argument \"{arg}\" in  \"{cli_dict['config']}\" not a recognised argument. "
-                                   f"Proceeding with loading.")
+                cli_dict[arg] = config_dict[arg]
+                # logger.warning(f" Argument \"{arg}\" in  \"{cli_dict['config']}\" not a recognised argument. "
+                #                f"Proceeding with loading.")
 
 
 def parser_setup():
+    """
+    Sets arguments that UEWS will use.
+    Determines allowable names in the config.yaml file and dictionary keys
+    (ex: parser.add_argument('--a') will make the 'a' value valid in the yaml file)
+    :returns an argparse parser
+    """
     parser = argparse.ArgumentParser(description="The Underwater Emergency Warning System (UEWS).")
     parser.add_argument('--ip', type=str, help='IP address that UEWS system should connect to.')
     parser.add_argument('--port', type=int, help='Port number that UEWS system should connect to.')
@@ -61,11 +92,22 @@ def parser_setup():
 
 
 def get_config():
+    """
+    Uses argparse to get arguments from the command line and then
+    loads arguments from a yaml specification.
+    :return a dictionary containing keys based on cli argument names
+    """
     parser = parser_setup()
     args = parser.parse_args()
-    get_configurations(args)
+    load_conf_file(args)
 
     argv = vars(args)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3fae0971e804bcb62b5d6827c60c9492794c38d8
     return argv
 
+
+args = get_config()
+print(args)

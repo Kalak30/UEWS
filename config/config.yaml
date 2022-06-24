@@ -1,10 +1,14 @@
-ip: 192.168.56.101
-port: 4334
-ttl: 5
-dt: 5
-tlt: 10
+connection:
+  ip: 192.168.56.101
+  port: 4334
 
-alert_params:
+tspi_options:
+  ttl: 5
+
+projection_options:
+  time_offset: 5
+
+alert_options:
   invalid_data_max_count: 5
   depth_violation_max_count: 5
   proj_pos_violation_max_count: 5
