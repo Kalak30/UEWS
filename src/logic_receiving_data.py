@@ -9,7 +9,10 @@ import tspi_calc
 import tspi
 from statics import *
 import configurator
+import alert_processor
+import logging
 
+logger = logging.getLogger(__name__)
 
 inner_poly = Polygon(chords_inner)
 
@@ -21,7 +24,9 @@ def alert_detector(current_position, last_position, current_time, last_time):
 
 # def setProjPosition(proj_pos, my_speed):
 def main():
+    print("in main")
     config_args = configurator.get_config()
+    alert_process = alert_processor.AlertProcessor()
 
     # server
     address = ('', 5000)
@@ -36,15 +41,29 @@ def main():
             while True:
                 # received_data(client)
                 msg = str(client.recv())
-                print(msg)
+                #print(msg)
 
-                # parse data
-                new_record = rsdf_parse.parse_data(msg)
-                # If new_record is pp : alert.pp_output()
+                #message recived, rest pp timer
+                
 
-                # If code 11 do the following
-                store.add_record(new_record)
-                # Reset alert_processor.no_sub_data_timer
+                try:
+                
+                    # parse data
+                    new_record = rsdf_parse.parse_data(msg)
+
+                    #reset sub timer
+                    alert_process.recived_all_data()
+
+                    #store record
+                    store.add_record(new_record)
+
+                    #check new data bounds
+
+                #no code 11, don't add records
+                except Exception as e: #TODO some better way to do this??
+                    alert_process.recived_noCode11_data()
+                    logger.debug(e)
+
 
                 # Actual calculation stuff
 

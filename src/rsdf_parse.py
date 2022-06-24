@@ -3,6 +3,7 @@ from tspi import *
 import tspi_calc
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 # Calculates the approximate rolling average given the old average, new value, and the total number of samples
@@ -66,6 +67,7 @@ def parse_data(message):
     #input_position = {"x_pos": 0, "y_pos": 0, "z_pos": 0, "knots": 0, "heading": 0}
     input_time = datetime.datetime(1, 1, 1, 1, 1)
     seen_pp = False
+    has_Code11 = False
     for line in lines:
 
         #print(line)
@@ -78,10 +80,10 @@ def parse_data(message):
         # if HS line, get the times, then go to next line
         elif words[0] == "HS":
             input_time = parse_hs(words)
-            print("input time", input_time)
             continue
 
         elif words[0] == 'PP' and words[4] == '11':
+            has_Code11 = True
             input_position = parse_pp(words)
             seen_pp = True
             continue
@@ -90,6 +92,8 @@ def parse_data(message):
         elif words[0] == "CS":
             print("\nend of message")
             parse_cs(seen_pp)
+            if not has_Code11:
+                raise Exception("No code 11")
             # Calculate X and Y speed from knots and heading
             x_speed, y_speed = tspi_calc.get_speed_from_knots(knots=input_position[4], heading=input_position[3])
             new_record = TSPIRecord(x=input_position[0], y=input_position[1], z=input_position[2], x_speed=x_speed,

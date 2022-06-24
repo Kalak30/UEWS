@@ -66,7 +66,6 @@ def get_config():
     get_configurations(args)
 
     argv = vars(args)
-    alert_msgs.config_alert_processor(argv["invalid_data_max_count"], argv["depth_violation_max_count"],
-                                      argv["proj_pos_violation_max_count"])
+
     return argv
 
