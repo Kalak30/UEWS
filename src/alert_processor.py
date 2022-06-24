@@ -3,6 +3,7 @@ import threading
 import logging
 import configurator
 
+
 logger = logging.getLogger(__name__)
 
 class AlertProcessor:
@@ -46,12 +47,13 @@ class AlertProcessor:
         #this does not clear alarm, need 5 in a row to clear alarm
         return
 
-    def reset_no_sub_data_timer(self):
+    def reset_no_sub_data_timer(self): #resets after any code 11 recived
         self.sub_timer.cancel()
         self.sub_timer = self.get_no_sub_timer(self.no_sub_alert_time)
         self.sub_timer.start()
         logging.debug("Reset no sub tack Timer") #TODO doulbe check 1 instance clears alarm
-        self.clear_no_sub_alarm()
+        if(self.no_sub_alarm):
+            self.clear_no_sub_alarm()
         return
 
     def reset_between_timer(self):
@@ -63,11 +65,9 @@ class AlertProcessor:
         return
   
 
-    #logic for getting data
+    #logic for getting data (NOTE: WE DO NOT KNOW IT IS VALID YET)
     def recived_all_data(self):
-        #check if no ouput alarm is on, and turn it off if 5th consecutive valid data
-        if self.no_output_alarm:
-            self.check_between()
+
         
         #reset timers because we have all data
         self.reset_no_output_timer()
@@ -86,28 +86,44 @@ class AlertProcessor:
     #checks if message came in the last 3 seconds. If this happens 5 times in a row, turn off alarm
     def check_between(self):
         if self.between_timer.is_alive():
-            self.msg_count += 1
+            self.consec_valid += 1
         else:
-            self.msg_count = 0
+            self.consec_valid = 0
 
-        if self.msg_count > 5:
+        if self.consec_valid > 5:
             self.clear_no_output_alarm()
-            self.msg_count = 0
+            self.consec_valid = 0
         else:
             self.reset_between_timer()
         return
 
     #counting for data/boundary violation
     def invalid_data(self):
+        logger.debug("got invaid data")
         self.invalid_data_count += 1
-
         if self.invalid_data_count >= self.id_max_count:
-            self.boundary_alarm = True
+            self.valid_alarm = True
+    
+    def valid_data(self):
+        logger.debug("got valid data")
+
+        #check if no ouput alarm is on, and turn it off if 5th consecutive valid data
+        if self.no_output_alarm:
+            self.check_between()
+
+        self.invalid_data_count = 0
+        self.valid_alarm = False
+        return
 
     def depth_violation(self):
         self.depth_violation_count += 1
         if self.depth_violation_count >= self.depth_max_count:
-            self.boundary_alarm = True
+            self.depth_alarm = True
+
+    def depth_ok(self):
+        self.depth_violation_count = 0
+        self.depth_alarm = False
+        return
 
     def bounds_violation_alert(self):
         self.bounds_violation += 1
@@ -154,7 +170,7 @@ class AlertProcessor:
 
     #refresh master alert
     def refresh_alarm(self):
-        if self.no_output_alarm or self.no_sub_alarm or self.boundary_alarm:
+        if self.no_output_alarm or self.no_sub_alarm or self.boundary_alarm or self.valid_alarm or self.depth_alarm:
             if not self.alarm_enable:
                 self.set_alert()
         else:
@@ -188,6 +204,9 @@ class AlertProcessor:
         #differnt types of alarms
         self.no_output_alarm = False
         self.no_sub_alarm = False
+        
+        self.valid_alarm = False
+        self.depth_alarm = False
         self.boundary_alarm = False
 
         # Length in seconds of timer until an alert should be given if no sub track on PSK
@@ -199,7 +218,7 @@ class AlertProcessor:
         self.between_time_max = 3   #TODO add config for how long till alert if not data (config_args[""])
 
         #count variable for num consecutive messages after loss of data
-        self.msg_count = 0
+        self.consec_valid = 0
 
         #count variables for number of violoations
         self.invalid_data_count = 0
