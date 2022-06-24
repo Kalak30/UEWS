@@ -28,9 +28,10 @@ c.send({'a': 123})
  
              
 
-with open('../test_data_1_edit.txt') as f:
+with open('../test_data_3_edit.txt') as f:
     total_message = ""
-    for i in range(0,35):
+    #for i in range(0,35):
+    while True:
         line = f.readline()
         if not line: 
             break

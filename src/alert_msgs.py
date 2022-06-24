@@ -4,7 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-ap = AlertProcessor(0, 0, 0)
+#ap = AlertProcessor(0, 0, 0)
 
 
 def config_alert_processor(invalid_data_max_count, depth_violation_max_count, proj_pos_violation_max_count):
