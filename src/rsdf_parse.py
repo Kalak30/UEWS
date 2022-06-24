@@ -101,12 +101,8 @@ def parse_data(message):
             input_time = parse_hs(words)
             continue
 
-<<<<<<< HEAD
         elif words[0] == 'PP' and words[4] == '11':
             has_Code11 = True
-=======
-        if words[0] == 'PP' and words[4] == '11':
->>>>>>> 3fae0971e804bcb62b5d6827c60c9492794c38d8
             input_position = parse_pp(words)
             seen_pp = True
             continue
