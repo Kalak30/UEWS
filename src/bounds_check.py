@@ -2,10 +2,9 @@
 
 from asyncio.log import logger
 import statistics
-from statics import coords_inner, coords_outer, coords_center, outer_bound_depth, inner_bound_depth, center_bound_depth
+from statics import coords_inner, coords_outer, coords_center, outer_bound_depth, inner_bound_depth, center_bound_depth, x_outlier, y_outlier, z_outlier, speed_outlier
 from shapely.geometry import Point, Polygon
 from tspi import TSPIRecord, Vector
-import  statics
 
 inner_poly = Polygon(coords_inner)
 center_poly = Polygon(coords_center)
@@ -27,15 +26,12 @@ def in_bounds(x, y, z):
 
 
 #return false is invalid, also check 
-def check_vaild_record(position, knots):
-    if not (7500< position.x <46680):
+def check_vaild_record(pos, knots):
+    if pos.x < x_outlier.lower or pos.x > x_outlier.upper or pos.y < y_outlier.lower or \
+            pos.y > y_outlier.upper or pos.z < z_outlier.lower or pos.z > z_outlier.upper or \
+            knots > speed_outlier.upper:
         return False
-    if not (-6600< position.y < 6600):
-        return False
-    if not (-600< position.z <25):
-        return False
-    if not (knots < 40):
-        return False
+    return True
     
     #else return true (valid)
     return True

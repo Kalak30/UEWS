@@ -13,11 +13,10 @@ Vector = recordclass("Vector", "x y z")
 
 class TSPIRecord:
     """Represents the spacial and temporal data from a single RSDF message received from RDMS
-        Validates whether a supplied position and knots is normal
         Calculates changes in x, y, and z positions between this record and previous record when added to TSPIStore
     """
     def __init__(self, position: Vector, speed: Vector, knots, heading, time):
-        # sets the position, speed and heading after doing a validation check
+        # sets the position, speed and heading
         self.position = Vector(0, 0, 0)
         self.speed = speed
         self.deltas = Vector(0, 0, 0)
@@ -28,8 +27,6 @@ class TSPIRecord:
         # Time in datetime format
         self.time = time
 
-        # Whether the position data is within the specified normal range
-        self.valid = True
 
     def is_old(self, ttl, curr_time: datetime):
         """Used to determine if this record is too old to keep around anymore
@@ -38,14 +35,13 @@ class TSPIRecord:
         :return boolean stating if record should be forgotten about"""
         return tspi_calc.get_time_diff(curr_time, self.time) > ttl
 
-    #
+    
     def set_pose(self, pos: Vector, knots, heading):
         """Update position and knots, even if position is invalid
         :param pos Vector containing x, y, z coordinates of the position in sub
         :param knots speed in knots. Either calculated or received in message
         :param heading angle the sub is facing"""
 
-        self.valid = tspi_calc.validate_pos(pos, knots)
         self.position = pos
         self.knots, self.heading = knots, heading
 
@@ -75,7 +71,7 @@ class TSPIRecord:
 class TSPIStore:
     """Store records in a Deque while their time is within the ttl
         Maintains sums of directional speeds to quicly calculate average speed over entire store
-        Alerts if attempting to add an invalid record"""
+    """
     def __init__(self, ttl):
         # Oldest record on right, the newest record on left
         self.records = deque()
@@ -102,10 +98,6 @@ class TSPIStore:
             """
 
         if record is None:
-            return
-        # record is invalid and we should alert
-        if not record.valid:
-            #invalid_data_alert()
             return
 
         new_time = record.time

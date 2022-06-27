@@ -7,16 +7,6 @@ def get_delta(s1, s2, seconds):
     return (s1 - s2) / seconds
 
 
-# Gets called upon creation and changing the pose of the record
-def validate_pos(pos: Vector, knots):
-
-    if pos.x < x_outlier.lower or pos.x > x_outlier.upper or pos.y < y_outlier.lower or \
-            pos.y > y_outlier.upper or pos.z < z_outlier.lower or pos.z > z_outlier.upper or \
-            knots > speed_outlier.upper:
-        return False
-    return True
-
-
 # get my_speed in yards per second
 def get_speed(my_speed, current_position, last_position, seconds):
     # alternatively this can be done by using the given my_speed and heading.
