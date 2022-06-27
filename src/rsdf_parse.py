@@ -2,6 +2,7 @@
 Parses different PSK record types and parses a PSK record.
 Able to count the amount of PP messages received
 """
+from asyncio.windows_events import NULL
 import logging
 import datetime
 import tspi_calc
@@ -31,13 +32,13 @@ def parse_pp(words):
     # Calculate average PP position if there are multiple
     if parse_pp.seen_pp:
         if parse_pp.num_pp < 1:
-            logger.info("Have seen a PP record but have not parsed it. Returning value of this PP record")
+            logger.debug("Have seen a PP record but have not parsed it. Returning value of this PP record")
             return input_position
 
         input_position = [approx_rolling_avg(avg_val, ip_val, parse_pp.num_pp) for avg_val, ip_val in
                           zip(input_position, parse_pp.rolling_avg)]
     else:
-        print("found pp")
+        logger.debug("found pp")
         parse_pp.seen_pp = True
 
     parse_pp.num_pp += 1
@@ -69,7 +70,6 @@ def parse_cs(seen_pp):
         # return 3 to show no PP
         return 3
 
-    print("reset seen PP for next message")
     parse_pp.seen_pp = False
     return 0
 
@@ -112,7 +112,9 @@ def parse_data(message):
             print("\nend of message")
             parse_cs(seen_pp)
             if not has_Code11:
-                raise Exception("No code 11")
+                #raise Exception("No code 11")
+                logging.debug("No code 11")
+                return NULL
             # Calculate X and Y speed from knots and heading
             x_speed, y_speed = tspi_calc.get_speed_from_knots(knots=input_position[4], heading=input_position[3])
 
@@ -122,5 +124,5 @@ def parse_data(message):
 
             return new_record
 
-    print("never got a CS")
+    logging.debug("never got a CS")
     return None

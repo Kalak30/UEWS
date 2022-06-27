@@ -1,4 +1,6 @@
+from asyncio.windows_events import NULL
 import datetime
+from tabnanny import check
 import numpy as np
 
 from multiprocessing.connection import Client
@@ -11,6 +13,7 @@ from statics import *
 import configurator
 import alert_processor
 import logging
+import bounds_check
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +26,7 @@ def alert_detector(current_position, last_position, current_time, last_time):
 def main():
     print("in main")
     config_args = configurator.get_config()
-    alert_process = alert_processor.AlertProcessor()
+    AP = alert_processor.AlertProcessor()
 
     # server
     address = ('', 5000)
@@ -38,24 +41,40 @@ def main():
             while True:
                 # received_data(client)
                 msg = str(client.recv()) # Blocking
-                print(msg)
+                #print(msg)
 
                 #message recived, rest pp timer
                 
 
-                try:
+                #------TODO make this a functin?--------
                 
-                    # parse data
-                    new_record = rsdf_parse.parse_data(msg)
+                # parse data
+                new_record = rsdf_parse.parse_data(msg)
 
-                    #reset sub timer
-                    alert_process.recived_all_data()
+                if(new_record == NULL):
+                    AP.recived_noCode11_data()
+                    continue
 
-                    #store record
+                #reset sub timer
+                AP.recived_all_data()
+
+                #check data in record (if not vailid aka false, don't store)
+                if(bounds_check.check_vaild_record(new_record.position, new_record.knots)):
                     store.add_record(new_record)
+                    AP.valid_data()
+                    
+                else:
+                    AP.invalid_data()
+                    
+                #check depth
+                if(bounds_check.check_in_depth(new_record.position.z)):
+                    AP.depth_ok()
+                else:
+                    AP.depth_violation()
 
-                    #check new data bounds
+                #TODO cehck boundary projections
 
+<<<<<<< HEAD
                 #no code 11, don't add records
                 except Exception as e: #TODO some better way to do this??
                     alert_process.recived_noCode11_data()
@@ -71,6 +90,8 @@ def main():
                 #   Make an alert call
                 
                 
+=======
+>>>>>>> alarm_processor
 
         except EOFError as e:
             print("end of file")
