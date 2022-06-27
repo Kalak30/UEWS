@@ -113,7 +113,7 @@ def parse_data(message):
             parse_cs(seen_pp)
             if not has_Code11:
                 #raise Exception("No code 11")
-                logging.debug("No code 11")
+                logger.debug("No code 11")
                 return NULL
             # Calculate X and Y speed from knots and heading
             x_speed, y_speed = tspi_calc.get_speed_from_knots(knots=input_position[4], heading=input_position[3])
@@ -124,5 +124,5 @@ def parse_data(message):
 
             return new_record
 
-    logging.debug("never got a CS")
+    logger.debug("never got a CS")
     return None

@@ -60,12 +60,12 @@ class TSPIRecord:
 
     def print_values(self):
         """Prints values out to the logger"""
-        logging.debug("Printing record values: ")
-        logging.debug(f"x: {self.position.x}, y: {self.position.y}, z: {self.position.z}")
-        logging.debug(f"d_x: {self.deltas.x}, d_y: {self.deltas.y}, d_z: {self.deltas.z} ")
-        logging.debug(f"x_speed: {self.speed.x}, y_speed: {self.speed.y}")
-        logging.debug(f"heading: {self.heading}, knots: {self.knots}, time: {self.time} ")
-        logging.debug("end values printing\n")
+        logger.debug("Printing record values: ")
+        logger.debug(f"x: {self.position.x}, y: {self.position.y}, z: {self.position.z}")
+        logger.debug(f"d_x: {self.deltas.x}, d_y: {self.deltas.y}, d_z: {self.deltas.z} ")
+        logger.debug(f"x_speed: {self.speed.x}, y_speed: {self.speed.y}")
+        logger.debug(f"heading: {self.heading}, knots: {self.knots}, time: {self.time} ")
+        logger.debug("end values printing\n")
 
 
 class TSPIStore:
@@ -119,7 +119,7 @@ class TSPIStore:
             logger.debug("Popped old record")
 
         self.records.appendleft(record)
-        logging.debug(f"len after appending: {len(self.records)}")
+        logger.debug(f"len after appending: {len(self.records)}")
 
     def get_newest_record(self):
         """Returns the newest (leftmost) record"""
@@ -132,6 +132,6 @@ class TSPIStore:
 
     def print_all_records(self):
         """Prints all records within the store"""
-        logging.debug("\nPrinting all records:\n")
+        logger.debug("\nPrinting all records:\n")
         for record in self.records:
             record.print_values()

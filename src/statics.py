@@ -6,7 +6,7 @@ Bounds = namedtuple("Bounds", "lower upper")
 # Values in feet
 x_outlier = Bounds(lower=7500, upper=46680)
 y_outlier = Bounds(lower=-6600, upper=6600)
-z_outlier = Bounds(lower=--600, upper=25)
+z_outlier = Bounds(lower=-600, upper=25)
 speed_outlier = Bounds(lower=0, upper=40)
 
 # Depth in feet under the water
