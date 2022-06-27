@@ -14,6 +14,7 @@ import configurator
 import alert_processor
 import logging
 import bounds_check
+import calculation_state
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +30,16 @@ def main():
     custom_proj = False
     AP = alert_processor.AlertProcessor()
 
-    # server
-    address = ('', 5000)
 
-    serv = Listener(address)
+    # Both connections should end up being closed at some point
+    # server
+    serv_address = ('', 5000)
+    serv = Listener(serv_address)
+
+    # Tracking GUI
+    tr_address = ('localhost', 6000)
+    tr_conn = Client(tr_address)
+
     while True:
         client = serv.accept()
         try:
@@ -76,6 +83,10 @@ def main():
                 #get projections
                 store.get_prediction(new_record, custom_proj)
 
+                state = calculation_state.CalculationState(store, msg)
+
+                
+                tr_conn.send(state)
                 #TODO cehck boundary projections
                 if(bounds_check.in_bounds(new_record.proj_position)):
                     AP.bounds_violation()
