@@ -74,24 +74,6 @@ def main():
 
                 #TODO cehck boundary projections
 
-<<<<<<< HEAD
-                #no code 11, don't add records
-                except Exception as e: #TODO some better way to do this??
-                    alert_process.recived_noCode11_data()
-                    logger.debug(e)
-
-
-                # Actual calculation stuff
-                if not bounds_check.in_bounds(new_record.position.x, new_record.position.y, new_record.position.z):
-                    pass # Make an alert call
-
-                # proj_pos = calc_pos(store) || proj_pos = store.calc_proj()
-                # if not bounds_check.inbounds(proj_pos.x, proj_pos.y, proj_pos.z):
-                #   Make an alert call
-                
-                
-=======
->>>>>>> alarm_processor
 
         except EOFError as e:
             print("end of file")
