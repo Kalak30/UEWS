@@ -3,11 +3,12 @@ Spacial and temporal information received in RSDF messages. """
 import datetime
 import logging
 import tspi_calc
-from collections import deque, namedtuple
+from recordclass import recordclass 
+from collections import deque
 
 
 logger = logging.getLogger(__name__)
-Vector = namedtuple("Vector", "x y z")
+Vector = recordclass("Vector", "x y z")
 
 
 class TSPIRecord:
@@ -57,10 +58,9 @@ class TSPIRecord:
         logger.debug(f"current x pos: {self.position.x}")
         logger.debug(f"past x pos: {other.position.x}")
         d_t = tspi_calc.get_time_diff(self.time, other.time)
-        dx = tspi_calc.get_delta(self.position.x, other.position.x, d_t)
-        dy = tspi_calc.get_delta(self.position.y, other.position.y, d_t)
-        dz = tspi_calc.get_delta(self.position.z, other.position.z, d_t)
-        self.deltas = Vector(x=dx, y=dy, z=dz)
+        self.position.x = tspi_calc.get_delta(self.position.x, other.position.x, d_t)
+        self.position.y = tspi_calc.get_delta(self.position.y, other.position.y, d_t)
+        self.position.z = tspi_calc.get_delta(self.position.z, other.position.z, d_t)
 
     def print_values(self):
         """Prints values out to the logger"""
@@ -84,17 +84,16 @@ class TSPIStore:
 
     def increase_totals(self, deltas: Vector):
         """Increase the totals vector"""
-        new_x = self.total_speeds.x + deltas.x
-        new_y = self.total_speeds.y + deltas.y
-        new_z = self.total_speeds.z + deltas.z
-        self.total_speeds = Vector(x=new_x, y=new_y, z=new_z)
+        self.total_speeds.x += deltas.x
+        self.total_speeds.y += deltas.y
+        self.total_speeds.z += deltas.z
+
 
     def decrease_totals(self, deltas: Vector):
         """Decrease the totals tuple"""
-        new_x = self.total_speeds.x - deltas.x
-        new_y = self.total_speeds.y - deltas.y
-        new_z = self.total_speeds.z - deltas.z
-        self.total_speeds = Vector(x=new_x, y=new_y, z=new_z)
+        self.total_speeds.x -= deltas.x
+        self.total_speeds.y -= deltas.y
+        self.total_speeds.z -= deltas.z
 
     def add_record(self, record: TSPIRecord):
         """Adds a new record to the store. At the same time removes any stale records.
@@ -123,9 +122,7 @@ class TSPIStore:
         # Iterates through the oldest records, popping them off if they do not meet ttl
         # Also ensures that the total speeds are kept up to date
         while len(self.records) > 0 and self.records[-1].is_old(self.record_ttl, new_time):
-            self.total_speeds.x -= self.records[-1].deltas.x
-            self.total_speeds.y -= self.records[-1].deltas.y
-            self.total_speeds.z -= self.records[-1].deltas.z
+            self.decrease_totals(deltas=self.records[-1].deltas)
             self.records.pop()
             logger.debug("Popped old record")
 

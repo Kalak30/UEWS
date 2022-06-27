@@ -5,7 +5,7 @@ from multiprocessing.connection import Client
 from multiprocessing.connection import Listener
 
 import rsdf_parse
-import tspi_calc
+import bounds_check
 import tspi
 from statics import *
 import configurator
@@ -63,6 +63,14 @@ def main():
 
 
                 # Actual calculation stuff
+                if not bounds_check.in_bounds(new_record.position.x, new_record.position.y, new_record.position.z):
+                    pass # Make an alert call
+
+                # proj_pos = calc_pos(store) || proj_pos = store.calc_proj()
+                # if not bounds_check.inbounds(proj_pos.x, proj_pos.y, proj_pos.z):
+                #   Make an alert call
+                
+                
 
         except EOFError as e:
             print("end of file")
