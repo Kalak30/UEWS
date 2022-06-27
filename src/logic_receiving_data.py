@@ -52,7 +52,6 @@ def main():
                 new_record = rsdf_parse.parse_data(msg)
 
                 if(new_record == NULL):
-                    print("except")
                     AP.recived_noCode11_data()
                     continue
 
@@ -61,12 +60,10 @@ def main():
 
                 #check data in record (if not vailid aka false, don't store)
                 if(bounds_check.check_vaild_record(new_record.position, new_record.knots)):
-                    print("vailid")
                     store.add_record(new_record)
                     AP.valid_data()
                     
                 else:
-                    print("invalid")
                     AP.invalid_data()
                     
                 #check depth
@@ -76,6 +73,7 @@ def main():
                     AP.depth_violation()
 
                 #TODO cehck boundary projections
+
 
         except EOFError as e:
             print("end of file")

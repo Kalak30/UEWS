@@ -27,55 +27,60 @@ class AlertProcessor:
 
         return
 
-    #start timers
+    #----start timers----
     def start_no_output_timer(self):
+        """start timer for compleast loss of incomming data"""
         self.data_timer.start()
-        logging.debug("Started no output timer")
+        logger.debug("Started no output timer")
         return
 
     def start_no_sub_data_timer(self):
+        """start timer for loss of code 11 sub track"""
         self.sub_timer.start()
-        logging.debug("Started no subtrack timer")
+        logger.debug("Started no subtrack timer")
         return
 
-    #reset timers
+
+    #----reset timers----
     def reset_no_output_timer(self):
+        """reset timer used for compleat loss of data incomming"""
         self.data_timer.cancel()
         self.data_timer = self.get_no_data_timer(self.no_output_alert_time)
         self.data_timer.start()
-        logging.debug("Reset no output Timer")
+        logger.debug("Reset no output Timer")
         #this does not clear alarm, need 5 in a row to clear alarm
         return
 
     def reset_no_sub_data_timer(self): #resets after any code 11 recived
+        """reset timer used for loss of code 11 sub track"""
         self.sub_timer.cancel()
         self.sub_timer = self.get_no_sub_timer(self.no_sub_alert_time)
         self.sub_timer.start()
-        logging.debug("Reset no sub tack Timer") #TODO doulbe check 1 instance clears alarm
+        logger.debug("Reset no sub tack Timer") #TODO doulbe check 1 instance clears alarm
         if(self.no_sub_alarm):
             self.clear_no_sub_alarm()
         return
 
     def reset_between_timer(self):
+        """resets timer that is used for tracking time between messages"""
         if self.between_timer.is_alive():
             self.between_timer.cancel()
         self.between_timer = self.get_between_timer(self.between_time_max)
         self.between_timer.start()
-        logging.debug("reset betwee timer")
+        logger.debug("reset betwee timer")
         return
   
-
-    #logic for getting data (NOTE: WE DO NOT KNOW IT IS VALID YET)
+    #----reciving data functions----
     def recived_all_data(self):
-
-        
+        """function to handle a complete incomming message (has code 11).
+         We do NOT know yet if it has valid data"""
         #reset timers because we have all data
         self.reset_no_output_timer()
         self.reset_no_sub_data_timer()
         return
 
-    #logic for getting data that is missing code 11
     def recived_noCode11_data(self):
+        """Function to handle incommiong data that does NOT contain code 11 subtrack"""
         if self.no_output_alarm:
             self.check_between()
 
@@ -83,10 +88,12 @@ class AlertProcessor:
         self.reset_no_output_timer()
         return
 
-    #checks if message came in the last 3 seconds. If this happens 5 times in a row, turn off alarm
+
     def check_between(self):
+        """checks if message came in the last 3 seconds. If this happens 5 times in a row, turn off no output alarm"""
         if self.between_timer.is_alive():
             self.consec_valid += 1
+            logger.debug(f"consecutive valid: {self.consec_valid}")
         else:
             self.consec_valid = 0
 
@@ -97,41 +104,58 @@ class AlertProcessor:
             self.reset_between_timer()
         return
 
-    #counting for data/boundary violation
+    #----counting for position violations----
+    #3 different count tpyes: invalid data, depth violation, porjected boundary violoation
     def invalid_data(self):
-        logger.debug("got invaid data")
+        """Handles an invaid data point"""
         self.invalid_data_count += 1
+        logger.debug(f"got invaid data. count: {self.invalid_data_count}")
         if self.invalid_data_count >= self.id_max_count:
-            self.valid_alarm = True
+            self.set_invalid_alarm()
     
     def valid_data(self):
+        """handles valid data point"""
         logger.debug("got valid data")
 
         #check if no ouput alarm is on, and turn it off if 5th consecutive valid data
         if self.no_output_alarm:
             self.check_between()
 
+        #reset invaid data counter. Clear alarm if it is on
         self.invalid_data_count = 0
-        self.valid_alarm = False
+        if self.valid_alarm:
+            self.clear_invalid_alarm()
         return
 
     def depth_violation(self):
+        """Handles a 220 foot depth violation. Adds to counter and alarm on if 5 consec."""
         self.depth_violation_count += 1
         if self.depth_violation_count >= self.depth_max_count:
-            self.depth_alarm = True
+            self.set_depth_alarm()
 
     def depth_ok(self):
+        """Handles when 220 foot depth is ok. Resets counter and alarm"""
         self.depth_violation_count = 0
-        self.depth_alarm = False
+        if self.depth_alarm:
+            self.clear_depth_alarm()
         return
 
     def bounds_violation_alert(self):
+        """Handles out of projected boundary. Adds to 2/5 counter"""
         self.bounds_violation += 1
         if self.bounds_violation >= self.bounds_max_count:
-            self.boundary_alarm = True
+            self.set_boundary_alarm()
 
-    #alrm setting (each time one is set, refresh master)
+    def bounds_ok(self):
+        """handles ok projected boundary. Resets alarm if on"""
+        self.bounds_violation = 0
+        if self.boundary_alarm:
+            self.clear_boundary_alarm()
+
+    #----Alarm setting-----
+    #    5 types of alarms
     def set_no_data_alarm(self):
+        """Turn on alarm for compleat loss of data"""
         self.no_output_alarm = True
         self.between_timer = self.get_between_timer(3)
         self.between_timer.start()
@@ -139,55 +163,113 @@ class AlertProcessor:
         self.refresh_alarm()
 
     def set_no_sub_alarm_enable(self):
+        """Turn on alarm for no code 11 sub track"""
         self.no_sub_alarm = True
         logger.info("no sub track alarm set")
         self.refresh_alarm()
 
-    #clearning alarms. Each time an alarm is clearned, master alert is refreshed
+    def set_boundary_alarm(self):
+        """Trun on alarm for projected boundary"""
+        self.boundary_alarm = True
+        logger.info("boundary alarm set")
+        self.refresh_alarm()
+
+    def set_invalid_alarm(self):
+        """Turn on alarm for invalid data"""
+        self.valid_alarm = True
+        logger.info("invaild alarm set")
+        self.refresh_alarm()
+
+    def set_depth_alarm(self):
+        """Turn on alarm for under 220 foot depth"""
+        self.depth_alarm = True
+        logger.info("depth alarm set")
+        self.refresh_alarm()
+
+    #----clearning alarms----
+    #    5 tpyes of alarms
     def clear_no_output_alarm(self):
-        logging.info("No output alarm turned off")
+        """Turn off compleat loss of data alarm"""
+        logger.info("No output alarm turned off")
         self.no_output_alarm = False
         self.refresh_alarm()
     
     def clear_no_sub_alarm(self):
-        logging.info("No sub track alarm turned off")
+        """Turn off no code 11 sub track alarm"""
+        logger.info("No sub track alarm turned off")
         self.no_sub_alarm = False
         self.refresh_alarm()
 
     def clear_boundary_alarm(self):
-        logging.info("Boundary alarm turned off")
+        """Turn off projected boundary alarm"""
+        logger.info("Boundary alarm turned off")
         self.boundary_alarm = False
         self.refresh_alarm()
+
+    def clear_invalid_alarm(self):
+        """Turn off invalid data alarm"""
+        logger.info("invalid alarm turned off")
+        self.valid_alarm = False
+        self.refresh_alarm()
+
+    def clear_depth_alarm(self):
+        """Turn off depth under 220 feet alarm"""
+        logger.info("depth alarm turned off")
+        self.depth_alarm = False
+        self.refresh_alarm()
     
-    # master alert
+    #----master alert----
     def clear_alert(self):
+        """Turns on the Alarm_Enablew"""
         self.alarm_enable = False
-        logging.info("Alert Enable Now OFF")
+        logger.info("Alert Enable Now OFF")
 
     def set_alert(self):
         self.alarm_enable = True
-        logging.info("Alert Enable Now ON")
+        logger.info("Alert Enable Now ON")
 
     #refresh master alert
     def refresh_alarm(self):
+        """checks all 5 types of alarms. Enables master alarm if any are set to True"""
         if self.no_output_alarm or self.no_sub_alarm or self.boundary_alarm or self.valid_alarm or self.depth_alarm:
             if not self.alarm_enable:
                 self.set_alert()
+                self.print_alarm()
         else:
-            logging.debug("no alarms on")
+            logger.debug("no alarms on")
             if self.alarm_enable:
                 self.clear_alert()
         return
 
+    #print which alarm set off alarm_enable, for debugging
+    def print_alarm(self):
+        """Debug function, tells which of the 5 alarms set off the master alarm"""
+        if self.no_output_alarm:
+            logger.debug(f"eanbled from no_output_alarm")
+        if self.no_sub_alarm:
+            logger.debug(f"eanbled from no_sub_alarm")
+        if self.boundary_alarm:
+            logger.debug(f"eanbled from boundary_alarm")
+        if self.valid_alarm:
+            logger.debug(f"eanbled from valid_alarm")
+        if self.depth_alarm:
+            logger.debug(f"eanbled from depth_alarm")
+        else:
+            logger.debug(f"no changes made")
+
     def __new__(cls):
+        """Function to force Alert Processor to only have 1 instance. 
+        If an instance already exists, return that instance. Otherwise create a new one and return that. """
+
         if not hasattr(cls, 'instance'):
-            logging.debug("created new instance")
+            logger.debug("created new instance")
             cls.instance =super(AlertProcessor, cls).__new__(cls)
             cls.instance.initialized = False
         return cls.instance
    
    
     def __init__(self):
+        """init for Alert Processor. Creates all variables, also starts loss of data and no Code 11 timers."""
         #if not the first instance, don't rubn __init__
         if(self.initialized) : return
 

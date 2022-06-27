@@ -40,6 +40,9 @@ def check_vaild_record(position, knots):
     #else return true (valid)
     return True
 
+#return false is out of depth, true if ok
 def check_in_depth(depth):
+    if depth < -220:
+        return False
 
-    return
+    return True
