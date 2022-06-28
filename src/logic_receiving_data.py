@@ -1,5 +1,6 @@
 from asyncio.windows_events import NULL
-import datetime
+from ctypes.util import find_library
+import time
 from tabnanny import check
 import numpy as np
 
@@ -38,8 +39,15 @@ def main():
 
     # Tracking GUI
     tr_address = ('localhost', 6000)
-    tr_conn = Client(tr_address)
+    tr_conn = None
+    while tr_conn is None:
+        try:
+            tr_conn = Client(tr_address)
+        except ConnectionRefusedError as e:
+            time.sleep(1) # Wait a bit for other processes to start
+            continue
 
+        
     while True:
         client = serv.accept()
         try:

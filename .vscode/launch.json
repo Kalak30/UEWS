@@ -12,6 +12,40 @@
             "console": "integratedTerminal",
             "cwd": "${fileDirname}",
             "justMyCode": true
+        },
+        {
+            "name": "Tracking GUI",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/tracking_gui.py",
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}",
+            "justMyCode": true
+        },
+        {
+            "name": "UEWS Backend",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/logic_receiving_data.py",
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}",
+            "justMyCode": true
+        },
+        {
+            "name": "Test Server",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/sending_data.py",
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}",
+            "justMyCode": true
+        }
+    ],
+    "compounds":[
+        {
+            "name": "GUI Test",
+            "configurations": ["Tracking GUI", "UEWS Backend", "Test Server"],
+            "stopAll": true
         }
     ]
 }
