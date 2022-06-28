@@ -1,9 +1,4 @@
-from cmath import e
-from ctypes import alignment
-from shutil import which
-from sre_parse import State
 from tkinter import *
-from random import randint
 import logging
 
 from pyparsing import col
@@ -17,7 +12,6 @@ from multiprocessing.connection import Connection, Listener
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg #Places matplotlib plot on tkinter canvas
 from matplotlib.figure import Figure    # For creating a figure
 from matplotlib.ticker import MultipleLocator
-import time
 import threading # Needed so that plot can update without freezing the GUI
 
 logging.basicConfig(level=logging.DEBUG)
