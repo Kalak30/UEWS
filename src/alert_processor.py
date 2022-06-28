@@ -145,17 +145,31 @@ class AlertProcessor:
             self.clear_depth_alarm()
         return
 
+
     def bounds_violation(self):
         """Handles out of projected boundary. Adds to 2/5 counter"""
-        self.bounds_violation_count += 1
-        if self.bounds_violation_count >= self.bounds_max_count:
-            self.set_boundary_alarm()
+        self.bounds_violation_count.append(1)
+        self.bounds_handle()
 
     def bounds_ok(self):
         """handles ok projected boundary. Resets alarm if on"""
-        self.bounds_violation_count = 0
-        if self.boundary_alarm:
-            self.clear_boundary_alarm()
+        self.bounds_violation_count.append(0)
+        self.bounds_handle()
+
+    def bounds_handle(self):
+        #pop oldest to keep track of only 5
+        self.bounds_violation_count.pop(0)
+
+        #enable alarm if at least 2 out of 5 projections are outside
+        if sum(self.bounds_violation_count) >= self.bounds_max_count:
+            self.set_boundary_alarm()
+        
+        #otherwise clear the alarm if it is on
+        else:
+            if self.boundary_alarm:
+                self.clear_boundary_alarm()
+
+        return
 
     #----Alarm setting-----
     #    5 types of alarms
@@ -326,7 +340,7 @@ class AlertProcessor:
         #count variables for number of violoations
         self.invalid_data_count = 0
         self.depth_violation_count = 0
-        self.bounds_violation_count = 0
+        self.bounds_violation_count = [0,0,0,0,0]
 
         self.total_valid_track = 0
         self.total_no_sub = 0

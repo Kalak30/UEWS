@@ -2,6 +2,7 @@
 
 from asyncio.log import logger
 import statistics
+from tkinter import INSIDE
 from statics import coords_inner, coords_outer, coords_center, outer_bound_depth, inner_bound_depth, center_bound_depth, x_outlier, y_outlier, z_outlier, speed_outlier
 from shapely.geometry import Point, Polygon
 from tspi import TSPIRecord, Vector
@@ -15,7 +16,7 @@ outer_poly = Polygon(coords_outer)
 def in_bounds(position):
     """Determines if a position at x, y, z is within the allowed boundary
     :return bool if point is within allowed boundary"""
-
+    inside_bounds = False
     pos = Point(position.x, position.y)
     # Z and bounds are negative
     if position.z < inner_bound_depth.upper:

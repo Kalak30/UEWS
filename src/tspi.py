@@ -62,13 +62,14 @@ class TSPIRecord:
     def print_values(self):
         """Prints values out to the logger"""
         logger.debug("Printing record values: ")
-        logger.debug(f"x: {self.position.x}, y: {self.position.y}, z: {self.position.z}")
+        logger.debug(f"feet: x: {self.position.x}, y: {self.position.y}, z: {self.position.z}")
+        logger.debug(f"yards: x: {self.position.x/3}, y: {self.position.y/3}, z: {self.position.z/3}")
         logger.debug(f"d_x: {self.deltas.x}, d_y: {self.deltas.y}, d_z: {self.deltas.z} ")
         logger.debug(f"x_speed: {self.speed.x}, y_speed: {self.speed.y}")
         logger.debug(f"heading: {self.heading}, knots: {self.knots}, time: {self.time} ")
-        logger.debug(f"proj_x: {self.proj_position.x}, proj_y: {self.proj_position.y}, proj_z: {self.proj_position.z}")
+        logger.debug(f"feet: proj_x: {self.proj_position.x}, proj_y: {self.proj_position.y}, proj_z: {self.proj_position.z}")
+        logger.debug(f"yards: proj_x: {self.proj_position.x/3}, proj_y: {self.proj_position.y/3}, proj_z: {self.proj_position.z/3}")
         logger.debug("end values printing\n")
-
 
 class TSPIStore:
     """Store records in a Deque while their time is within the ttl
@@ -133,41 +134,12 @@ class TSPIStore:
     def get_prediction(self, record: TSPIRecord, custom):
         if custom:
             avg_speeds = self.get_average_speeds()
-            record.proj_position = get_predict_custom(record.position, avg_speeds, 60)
+            record.proj_position = tspi_calc.get_predict_custom(record.position, avg_speeds, 60)
             return
         else:
-            record.proj_position = get_predict_given(record.position, record.speed, 60) #TODO change seconds param to be configurable
+            record.proj_position = tspi_calc.get_predict_given(record.position, record.speed, 60) #TODO change seconds param to be configurable
 
-    def get_predict_given(self, position, speed, seconds):
-        """Calculate the projected position of the sub according to the given code 11 track's of speed and heading. 
-        Does NOT take into account z speed (how fast depth changes)
-        return: vector of the position"""
-        #z value should just stay the same here
-        proj_position = Vector(0,0,0)
-        proj_position.x = position.x + (speed.x * seconds)
-        proj_position.y = position.y + (speed.y * seconds)
-        proj_position.z = position.z
 
-        logger.debug("Using given predictions")
-        logger.debug(f"Input position: {position}")
-        logger.debug(f"Given Speed: {speed}, seconds: {seconds}")
-        logger.debug(f"Predicted Position: {proj_position}")
-
-        return proj_position
-
-    def get_predict_custom(self, position, avg_speeds, seconds):
-        """Calculates the projected position of the sub using the past x number of valid positions. 
-        This DOES take into account z speed."""
-        proj_position = proj_position = Vector(0,0,0)
-        proj_position.x = position.x + (avg_speeds.x * seconds)
-        proj_position.y = position.y + (avg_speeds.y * seconds)
-        proj_position.z = position.z + (avg_speeds.z * seconds)
-
-        logger.debug("Using custonm predictions")
-        logger.debug(f"Input position: {position}")
-        logger.debug(f"Predicted Position: {proj_position}")
-
-        return proj_position
 
     def get_newest_record(self):
         """Returns the newest (leftmost) record"""
