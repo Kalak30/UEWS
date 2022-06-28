@@ -7,9 +7,13 @@ def sendMessage(total_message):
 
 
 
-
-
-c = Client(('localhost', 5000))
+c = None
+while c is None:
+    try:
+        c = Client(('localhost', 5000))
+    except ConnectionRefusedError as e:
+        time.sleep(1)
+        continue
 
 
 

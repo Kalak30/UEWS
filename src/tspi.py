@@ -2,7 +2,7 @@
 Spacial and temporal information received in RSDF messages. """
 import datetime
 import logging
-import tspi_calc
+from tspi_calc import get_time_diff, get_delta, get_predict_given, get_predict_custom
 from recordclass import recordclass 
 from collections import deque
 
@@ -34,7 +34,7 @@ class TSPIRecord:
         :param ttl how long a record should be allowed to live
         :param curr_time the current time.
         :return boolean stating if record should be forgotten about"""
-        return tspi_calc.get_time_diff(curr_time, self.time) > ttl
+        return get_time_diff(curr_time, self.time) > ttl
 
     
     def set_pose(self, pos: Vector, knots, heading):
@@ -54,10 +54,10 @@ class TSPIRecord:
         :param other Another record. Ideally used if other is the previous record created"""
         logger.debug(f"current x pos: {self.position.x}")
         logger.debug(f"past x pos: {other.position.x}")
-        d_t = tspi_calc.get_time_diff(self.time, other.time)
-        self.deltas.x = tspi_calc.get_delta(self.position.x, other.position.x, d_t)
-        self.deltas.y = tspi_calc.get_delta(self.position.y, other.position.y, d_t)
-        self.deltas.z = tspi_calc.get_delta(self.position.z, other.position.z, d_t)
+        d_t = get_time_diff(self.time, other.time)
+        self.deltas.x = get_delta(self.position.x, other.position.x, d_t)
+        self.deltas.y = get_delta(self.position.y, other.position.y, d_t)
+        self.deltas.z = get_delta(self.position.z, other.position.z, d_t)
 
     def print_values(self):
         """Prints values out to the logger"""
