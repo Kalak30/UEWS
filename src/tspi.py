@@ -134,10 +134,10 @@ class TSPIStore:
     def get_prediction(self, record: TSPIRecord, custom):
         if custom:
             avg_speeds = self.get_average_speeds()
-            record.proj_position = tspi_calc.get_predict_custom(record.position, avg_speeds, 60)
+            record.proj_position = get_predict_custom(record.position, avg_speeds, 60)
             return
         else:
-            record.proj_position = tspi_calc.get_predict_given(record.position, record.speed, 60) #TODO change seconds param to be configurable
+            record.proj_position = get_predict_given(record.position, record.speed, 60) #TODO change seconds param to be configurable
 
 
 
