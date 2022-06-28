@@ -1,5 +1,4 @@
 from tkinter import *
-from random import randint
 import logging
 
 import numpy as np
@@ -12,7 +11,6 @@ from multiprocessing.connection import Connection, Listener
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg #Places matplotlib plot on tkinter canvas
 from matplotlib.figure import Figure    # For creating a figure
 from matplotlib.ticker import MultipleLocator
-import time
 import threading # Needed so that plot can update without freezing the GUI
 
 logging.basicConfig(level=logging.DEBUG)
@@ -73,6 +71,7 @@ class App(Tk):
         self.no_sub_data_val = StringVar(info_frame, "0")
         self.alert_count_val = StringVar(info_frame, "0")
         self.depth_violation_val = StringVar(info_frame, "0")
+        self.raw_rsdf = StringVar(info_frame, "")
 
 
         # Creating Labels
@@ -169,6 +168,9 @@ class App(Tk):
         Label(info_frame, text="", width=5, height=2, name="alarm_on", pady=1,
               borderwidth=2, relief="groove", bg="gray").grid(row=2, column=8, sticky='e')
 
+        Label(info_frame, textvariable=self.raw_rsdf, name="raw_rsdf_info", pady=1,
+              borderwidth=2, relief="groove", justify="left").grid(row=0, column=14, rowspan=4, columnspan=3)
+
         
         info_frame.pack(fill=BOTH, expand=True)
         self.graph.get_tk_widget().pack(fill=BOTH, expand=True)
@@ -233,6 +235,8 @@ class App(Tk):
             self.no_sub_data_val.set(str(state.counters["total_no_sub"]))
             self.alert_count_val.set(str(state.counters["total_alert"]))
             self.depth_violation_val.set(str(state.counters["depth_violations"]))
+
+            self.raw_rsdf.set(state.rsdf)
 
             
             child_widgets = self.top_frame.winfo_children()
