@@ -69,10 +69,10 @@ def get_predict_given(position, speed, seconds):
     proj_position.y = position.y + (speed.y * seconds)
     proj_position.z = position.z
 
-    print("Using given predictions")
-    print(f"Input position: {position}")
-    print(f"Given Speed: {speed}, seconds: {seconds}")
-    print(f"Predicted Position: {proj_position}")
+    logger.debug("Using given predictions")
+    logger.debug(f"Input position: {position}")
+    logger.debug(f"Given Speed: {speed}, seconds: {seconds}")
+    logger.debug(f"Predicted Position: {proj_position}")
 
     return proj_position
 
@@ -87,9 +87,9 @@ def get_predict_custom(position, avg_speeds, seconds):
     proj_position.y = position.y + (avg_speeds.y * seconds)
     proj_position.z = position.z + (avg_speeds.z * seconds)
 
-    print("Using custonm predictions")
-    print(f"Input position: {position}")
-    print(f"Total Speeds: {total_speeds}, records: {records}, seconds: {seconds}")
-    print(f"Predicted Position: {proj_position}")
+    logger.debug("Using custonm predictions")
+    logger.debug(f"Input position: {position}")
+    logger.debug(f"Total Speeds: {total_speeds}, records: {records}, seconds: {seconds}")
+    logger.debug(f"Predicted Position: {proj_position}")
 
     return proj_position
