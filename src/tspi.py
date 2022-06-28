@@ -133,10 +133,10 @@ class TSPIStore:
     def get_prediction(self, record: TSPIRecord, custom):
         if custom:
             avg_speeds = self.get_average_speeds()
-            record.proj_position = get_predict_custom(record.position, avg_speeds, 300)
+            record.proj_position = get_predict_custom(record.position, avg_speeds, 60)
             return
         else:
-            record.proj_position = get_predict_given(record.position, record.speed, 300) #TODO change seconds param to be configurable
+            record.proj_position = get_predict_given(record.position, record.speed, 60) #TODO change seconds param to be configurable
 
     def get_predict_given(self, position, speed, seconds):
         """Calculate the projected position of the sub according to the given code 11 track's of speed and heading. 

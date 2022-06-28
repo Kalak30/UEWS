@@ -1,5 +1,4 @@
 import math
-from tspi import Vector
 from statics import *
 import logging
 
@@ -64,7 +63,8 @@ def get_predict_given(position, speed, seconds):
     Does NOT take into account z speed (how fast depth changes)
     return: vector of the position"""
     #z value should just stay the same here
-    proj_position = Vector(0,0,0)
+    import tspi
+    proj_position = tspi.Vector(0,0,0)
     proj_position.x = position.x + (speed.x * seconds)
     proj_position.y = position.y + (speed.y * seconds)
     proj_position.z = position.z
@@ -79,7 +79,8 @@ def get_predict_given(position, speed, seconds):
 def get_predict_custom(position, avg_speeds, seconds):
     """Calculates the projected position of the sub using the past x number of valid positions. 
     This DOES take into account z speed."""
-    proj_position = proj_position = Vector(0,0,0)
+    import tspi
+    proj_position = proj_position = tspi.Vector(0,0,0)
     proj_position.x = position.x + (avg_speeds.x * seconds)
     proj_position.y = position.y + (avg_speeds.y * seconds)
     proj_position.z = position.z + (avg_speeds.z * seconds)

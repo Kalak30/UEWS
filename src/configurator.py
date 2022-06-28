@@ -55,7 +55,6 @@ def load_conf_file(args):
             config_dict[new_key] = flat_dict.pop(k)
 
         log_file_path = path.join(path.dirname(path.abspath('')), statics.LOGGER_CONFIG_PATH)
-        logging.error(log_file_path)
         logging.config.fileConfig(log_file_path)
 
         for arg in config_dict:

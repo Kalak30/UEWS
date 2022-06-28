@@ -72,6 +72,7 @@ def main():
                 #reset sub timer
                 AP.recived_all_data()
 
+                # Validate incoming data
                 valid_x = bounds_check.check_x(new_record.position.x)
                 valid_y = bounds_check.check_y(new_record.position.y)
                 valid_z = bounds_check.check_z(new_record.position.z)
@@ -83,25 +84,40 @@ def main():
                 else:
                     AP.invalid_data()
                     
+                
+                # Check current pos is in
+                pos_good = True
+                if bounds_check.in_bounds(new_record.position):
+                    AP.bounds_ok()
+                else:
+                    pos_good = False
+                    AP.bounds_violation()
+                
                 #check depth
                 if(bounds_check.check_in_depth(new_record.position.z)):
                     AP.depth_ok()
                 else:
                     AP.depth_violation()
 
-                #get projections
                 store.get_prediction(new_record, custom_proj)
-                
-                valid_data = {"x": valid_x, "y": valid_y, "z": valid_z, "speed": valid_speed}
-                state = calculation_state.CalculationState(store, msg, valid_data)
 
-                
-                tr_conn.send(state)
-                #TODO cehck boundary projections
-                if(bounds_check.in_bounds(new_record.proj_position)):
-                    AP.bounds_violation()
-                else:
+                # Check projected pos in
+                proj_pos_good = True
+                if bounds_check.in_bounds(new_record.proj_position):
                     AP.bounds_ok()
+                else:
+                    proj_pos_good = False
+                    AP.bounds_violation()
+                    
+
+                 # Create and send state to GUI client
+                valid_data = {"x": valid_x, "y": valid_y, "z": valid_z, "speed": valid_speed}
+                ap_state = AP.get_alarm_state()
+                alarm_data = {"5_valid": (ap_state["consec_valid"] == 0), "sub_in": pos_good, 
+                              "proj_pos_good": proj_pos_good, "sub_pos_good": valid_x and valid_y and valid_z and valid_speed}
+                state = calculation_state.CalculationState(store, msg, valid_data, alarm_data)
+                tr_conn.send(state)
+
 
                 new_record.print_values()
 

@@ -27,7 +27,7 @@ while c is None:
  
              
 
-with open('../Test Data/tdata1.txt') as f:
+with open('../Test Data/projection_test.txt') as f:
     total_message = ""
     #for i in range(0,35):
     while True:
