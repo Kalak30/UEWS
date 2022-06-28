@@ -46,8 +46,8 @@ class TSPIRecord:
         self.position = pos
         self.knots, self.heading = knots, heading
 
-    def set_delta(self, x, y, z):
-        self.deltas = Vector(x, y, z)
+    def set_delta(self):
+        self.deltas = Vector(0,0,0)
 
     def delta_from_record(self, other):
         """Sets the change in speed from this record to the other record in feet per second
@@ -55,9 +55,9 @@ class TSPIRecord:
         logger.debug(f"current x pos: {self.position.x}")
         logger.debug(f"past x pos: {other.position.x}")
         d_t = tspi_calc.get_time_diff(self.time, other.time)
-        self.position.x = tspi_calc.get_delta(self.position.x, other.position.x, d_t)
-        self.position.y = tspi_calc.get_delta(self.position.y, other.position.y, d_t)
-        self.position.z = tspi_calc.get_delta(self.position.z, other.position.z, d_t)
+        self.deltas.x = tspi_calc.get_delta(self.position.x, other.position.x, d_t)
+        self.deltas.y = tspi_calc.get_delta(self.position.y, other.position.y, d_t)
+        self.deltas.z = tspi_calc.get_delta(self.position.z, other.position.z, d_t)
 
     def print_values(self):
         """Prints values out to the logger"""
@@ -110,11 +110,12 @@ class TSPIStore:
 
         # Check to make sure we don't access an empty record
         if len(self.records) == 0:
-            record.set_delta(record.position.x, record.position.y, record.position.z)
+            record.set_delta()
         else:
             record.delta_from_record(self.records[0])
 
         # Update stored total speeds. Must create a new Vector tuple as tuples are immutable
+        #only update if at leaste 2 records
         self.increase_totals(deltas=record.deltas)
 
         # Iterates through the oldest records, popping them off if they do not meet ttl
@@ -128,11 +129,14 @@ class TSPIStore:
         self.records.appendleft(record)
         logger.debug(f"len after appending: {len(self.records)}")
 
-        #set the predicted position of the record
-        #TODO add config for custom or given projection calculation
-        record.proj_position = tspi_calc.get_predict_given(record.position, record.speed, 60) #TODO change seconds param to be configurable
-        #avg_speeds = self.get_average_speeds()
-        #record.proj_position = tspi_calc.get_predict_custom(record.position, avg_speeds, 60)
+        
+    def get_prediction(self, record: TSPIRecord, custom):
+        if custom:
+            avg_speeds = self.get_average_speeds()
+            record.proj_position = tspi_calc.get_predict_custom(record.position, avg_speeds, 300)
+            return
+        else:
+            record.proj_position = tspi_calc.get_predict_given(record.position, record.speed, 300) #TODO change seconds param to be configurable
 
 
 
@@ -143,7 +147,15 @@ class TSPIStore:
     def get_average_speeds(self):
         """Gets the average x, y, and z speeds using the maintained sums and length of Deque"""
         record_len = len(self.records)
-        return [(k, val/record_len) for k, val in self.total_speeds]
+        avg_speed = Vector(0,0,0)
+        if record_len == 1:
+            return avg_speed
+
+        avg_speed.x = self.total_speeds.x/record_len
+        avg_speed.y = self.total_speeds.y/record_len
+        avg_speed.z = self.total_speeds.z/record_len
+
+        return avg_speed
 
     def print_all_records(self):
         """Prints all records within the store"""

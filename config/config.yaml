@@ -11,4 +11,4 @@ projection_options:
 alert_options:
   invalid_data_max_count: 5
   depth_violation_max_count: 5
-  proj_pos_violation_max_count: 5
+  proj_pos_violation_max_count: 2

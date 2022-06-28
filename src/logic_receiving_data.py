@@ -26,6 +26,7 @@ def alert_detector(current_position, last_position, current_time, last_time):
 def main():
     print("in main")
     config_args = configurator.get_config()
+    custom_proj = False
     AP = alert_processor.AlertProcessor()
 
     # server
@@ -72,8 +73,11 @@ def main():
                 else:
                     AP.depth_violation()
 
+                #get projections
+                store.get_prediction(new_record, custom_proj)
+
                 #TODO cehck boundary projections
-                if(bounds_check.check_project_boundary(new_record.proj_position)):
+                if(bounds_check.in_bounds(new_record.proj_position)):
                     AP.bounds_violation()
                 else:
                     AP.bounds_ok()
