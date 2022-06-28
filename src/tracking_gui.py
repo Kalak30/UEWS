@@ -1,7 +1,5 @@
 from tkinter import *
 import logging
-
-from pyparsing import col
 import numpy as np
 import statics
 import calculation_state
@@ -21,10 +19,8 @@ logging.basicConfig(level=logging.DEBUG)
 class App(Tk):
     def __init__(self):
         super().__init__()
-        #self.geometry("1000x700")
         self.title('UEWS Tracking GUI')
         self.state('zoomed')
-        #self.resizable(0,0)
         self.rowconfigure(5, weight=2)
         self.fig = Figure()
 
