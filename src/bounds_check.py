@@ -2,6 +2,7 @@
 
 from asyncio.log import logger
 import statistics
+from tkinter import INSIDE
 from statics import coords_inner, coords_outer, coords_center, outer_bound_depth, inner_bound_depth, center_bound_depth, x_outlier, y_outlier, z_outlier, speed_outlier
 from shapely.geometry import Point, Polygon
 from tspi import TSPIRecord, Vector
@@ -15,16 +16,21 @@ outer_poly = Polygon(coords_outer)
 def in_bounds(position):
     """Determines if a position at x, y, z is within the allowed boundary
     :return bool if point is within allowed boundary"""
-
+    inside_bounds = False
     pos = Point(position.x, position.y)
     # Z and bounds are negative
-    if position.z < inner_bound_depth.upper:
-        return pos.within(inner_poly)
-    elif position.z < center_bound_depth.upper:
-        return pos.within(center_poly)
-
-    return pos.within(outer_poly)
-
+    if inner_bound_depth.lower <= position.z < inner_bound_depth.upper: #lowest depth
+        inside_bounds = pos.within(inner_poly)
+        logger.debug(f"inside inner boudns: {inside_bounds}")
+    elif center_bound_depth.lower <= position.z < center_bound_depth.upper:
+        inside_bounds = pos.within(center_poly)
+        logger.debug(f"inside center boudns: {inside_bounds}")
+    elif outer_bound_depth.lower <= position.z < outer_bound_depth.upper:
+        inside_bounds = pos.within(outer_poly)
+        logger.debug(f"inside ouside boudns: {inside_bounds}")
+    else:
+        logger.debug("no bounds???")
+    return inside_bounds
 
 #return false is invalid, also check 
 def check_vaild_record(pos, knots):
