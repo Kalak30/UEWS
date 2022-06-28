@@ -52,8 +52,7 @@ def main():
             #create tspi store with specified time to live (ttl)
             store = tspi.TSPIStore(ttl=7)
             # Main loop
-            pos_good = True
-            proj_pos_good = True
+           
             while True:
                 # received_data(client)
                 msg = str(client.recv()) # Blocking
@@ -86,16 +85,11 @@ def main():
                 else:
                     AP.invalid_data()
                     
-                
+                pos_good = True
+                proj_pos_good = True
                 # Check current pos is in
-                if bounds_check.in_bounds(new_record.position):
-                    # Avoid overriding the bounds error from projected position
-                    pos_good = True
-                    if proj_pos_good:
-                        AP.bounds_ok()
-                else:
+                if not bounds_check.in_bounds(new_record.position):
                     pos_good = False
-                    AP.bounds_violation()
                 
                 #check depth
                 if(bounds_check.check_in_depth(new_record.position.z)):
@@ -106,13 +100,13 @@ def main():
                 store.get_prediction(new_record, custom_proj)
 
                 # Check projected pos in
-                if bounds_check.in_bounds(new_record.proj_position):
-                    # Avoid stepping on position bounds error
-                    proj_pos_good = True
-                    if pos_good:
-                        AP.bounds_ok()
-                else:
+                if not bounds_check.in_bounds(new_record.proj_position):
                     proj_pos_good = False
+                
+
+                if proj_pos_good and pos_good:
+                    AP.bounds_ok()
+                else:
                     AP.bounds_violation()
                     
 

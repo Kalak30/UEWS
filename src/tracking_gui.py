@@ -1,12 +1,7 @@
-from cmath import e
-from ctypes import alignment
-from shutil import which
-from sre_parse import State
 from tkinter import *
 from random import randint
 import logging
 
-from pyparsing import col
 import numpy as np
 import statics
 import calculation_state
