@@ -2,7 +2,7 @@
 Spacial and temporal information received in RSDF messages. """
 import datetime
 import logging
-import tspi_calc
+from tspi_calc import get_time_diff, get_delta, get_predict_given, get_predict_custom
 from recordclass import recordclass 
 from collections import deque
 
@@ -23,6 +23,7 @@ class TSPIRecord:
         self.knots = 0
         self.heading = 0
         self.set_pose(position, knots, heading)
+        self.proj_position = Vector(0,0,0)
 
         # Time in datetime format
         self.time = time
@@ -33,7 +34,7 @@ class TSPIRecord:
         :param ttl how long a record should be allowed to live
         :param curr_time the current time.
         :return boolean stating if record should be forgotten about"""
-        return tspi_calc.get_time_diff(curr_time, self.time) > ttl
+        return get_time_diff(curr_time, self.time) > ttl
 
     
     def set_pose(self, pos: Vector, knots, heading):
@@ -45,18 +46,18 @@ class TSPIRecord:
         self.position = pos
         self.knots, self.heading = knots, heading
 
-    def set_delta(self, x, y, z):
-        self.deltas = Vector(x, y, z)
+    def set_delta(self):
+        self.deltas = Vector(0,0,0)
 
     def delta_from_record(self, other):
         """Sets the change in speed from this record to the other record in feet per second
         :param other Another record. Ideally used if other is the previous record created"""
         logger.debug(f"current x pos: {self.position.x}")
         logger.debug(f"past x pos: {other.position.x}")
-        d_t = tspi_calc.get_time_diff(self.time, other.time)
-        self.position.x = tspi_calc.get_delta(self.position.x, other.position.x, d_t)
-        self.position.y = tspi_calc.get_delta(self.position.y, other.position.y, d_t)
-        self.position.z = tspi_calc.get_delta(self.position.z, other.position.z, d_t)
+        d_t = get_time_diff(self.time, other.time)
+        self.deltas.x = get_delta(self.position.x, other.position.x, d_t)
+        self.deltas.y = get_delta(self.position.y, other.position.y, d_t)
+        self.deltas.z = get_delta(self.position.z, other.position.z, d_t)
 
     def print_values(self):
         """Prints values out to the logger"""
@@ -65,6 +66,7 @@ class TSPIRecord:
         logger.debug(f"d_x: {self.deltas.x}, d_y: {self.deltas.y}, d_z: {self.deltas.z} ")
         logger.debug(f"x_speed: {self.speed.x}, y_speed: {self.speed.y}")
         logger.debug(f"heading: {self.heading}, knots: {self.knots}, time: {self.time} ")
+        logger.debug(f"proj_x: {self.proj_position.x}, proj_y: {self.proj_position.y}, proj_z: {self.proj_position.z}")
         logger.debug("end values printing\n")
 
 
@@ -91,6 +93,10 @@ class TSPIStore:
         self.total_speeds.y -= deltas.y
         self.total_speeds.z -= deltas.z
 
+
+
+
+
     def add_record(self, record: TSPIRecord):
         """Adds a new record to the store. At the same time removes any stale records.
             Updates the total speed values when a record is added or deleted.
@@ -104,11 +110,12 @@ class TSPIStore:
 
         # Check to make sure we don't access an empty record
         if len(self.records) == 0:
-            record.set_delta(record.position.x, record.position.y, record.position.z)
+            record.set_delta()
         else:
             record.delta_from_record(self.records[0])
 
         # Update stored total speeds. Must create a new Vector tuple as tuples are immutable
+        #only update if at leaste 2 records
         self.increase_totals(deltas=record.deltas)
 
         # Iterates through the oldest records, popping them off if they do not meet ttl
@@ -118,8 +125,49 @@ class TSPIStore:
             self.records.pop()
             logger.debug("Popped old record")
 
+
         self.records.appendleft(record)
         logger.debug(f"len after appending: {len(self.records)}")
+
+        
+    def get_prediction(self, record: TSPIRecord, custom):
+        if custom:
+            avg_speeds = self.get_average_speeds()
+            record.proj_position = get_predict_custom(record.position, avg_speeds, 60)
+            return
+        else:
+            record.proj_position = get_predict_given(record.position, record.speed, 60) #TODO change seconds param to be configurable
+
+    def get_predict_given(self, position, speed, seconds):
+        """Calculate the projected position of the sub according to the given code 11 track's of speed and heading. 
+        Does NOT take into account z speed (how fast depth changes)
+        return: vector of the position"""
+        #z value should just stay the same here
+        proj_position = Vector(0,0,0)
+        proj_position.x = position.x + (speed.x * seconds)
+        proj_position.y = position.y + (speed.y * seconds)
+        proj_position.z = position.z
+
+        logger.debug("Using given predictions")
+        logger.debug(f"Input position: {position}")
+        logger.debug(f"Given Speed: {speed}, seconds: {seconds}")
+        logger.debug(f"Predicted Position: {proj_position}")
+
+        return proj_position
+
+    def get_predict_custom(self, position, avg_speeds, seconds):
+        """Calculates the projected position of the sub using the past x number of valid positions. 
+        This DOES take into account z speed."""
+        proj_position = proj_position = Vector(0,0,0)
+        proj_position.x = position.x + (avg_speeds.x * seconds)
+        proj_position.y = position.y + (avg_speeds.y * seconds)
+        proj_position.z = position.z + (avg_speeds.z * seconds)
+
+        logger.debug("Using custonm predictions")
+        logger.debug(f"Input position: {position}")
+        logger.debug(f"Predicted Position: {proj_position}")
+
+        return proj_position
 
     def get_newest_record(self):
         """Returns the newest (leftmost) record"""
@@ -128,7 +176,15 @@ class TSPIStore:
     def get_average_speeds(self):
         """Gets the average x, y, and z speeds using the maintained sums and length of Deque"""
         record_len = len(self.records)
-        return [(k, val/record_len) for k, val in self.total_speeds]
+        avg_speed = Vector(0,0,0)
+        if record_len == 1:
+            return avg_speed
+
+        avg_speed.x = self.total_speeds.x/record_len
+        avg_speed.y = self.total_speeds.y/record_len
+        avg_speed.z = self.total_speeds.z/record_len
+
+        return avg_speed
 
     def print_all_records(self):
         """Prints all records within the store"""

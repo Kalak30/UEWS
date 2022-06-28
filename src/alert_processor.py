@@ -10,12 +10,15 @@ class AlertProcessor:
 
     #get timers for differnt alarm types
     def get_no_data_timer(self, time):
+        """timer for complete loss of data"""
         return threading.Timer(time, self.set_no_data_alarm)
 
     def get_no_sub_timer(self, time):
+        """Timer for no code 11 sub track"""
         return threading.Timer(time, self.set_no_sub_alarm_enable)
 
     def get_between_timer(self, time):
+        """Timer for monitoring the time in between messages"""
         return threading.Timer(time, self.print_between)
 
     #function for get_between to call
@@ -121,8 +124,10 @@ class AlertProcessor:
         if self.no_output_alarm:
             self.check_between()
 
+
         #reset invaid data counter. Clear alarm if it is on
         self.invalid_data_count = 0
+        self.total_valid_track += 1
         if self.valid_alarm:
             self.clear_invalid_alarm()
         return
@@ -140,15 +145,15 @@ class AlertProcessor:
             self.clear_depth_alarm()
         return
 
-    def bounds_violation_alert(self):
+    def bounds_violation(self):
         """Handles out of projected boundary. Adds to 2/5 counter"""
-        self.bounds_violation += 1
-        if self.bounds_violation >= self.bounds_max_count:
+        self.bounds_violation_count += 1
+        if self.bounds_violation_count >= self.bounds_max_count:
             self.set_boundary_alarm()
 
     def bounds_ok(self):
         """handles ok projected boundary. Resets alarm if on"""
-        self.bounds_violation = 0
+        self.bounds_violation_count = 0
         if self.boundary_alarm:
             self.clear_boundary_alarm()
 
@@ -156,6 +161,7 @@ class AlertProcessor:
     #    5 types of alarms
     def set_no_data_alarm(self):
         """Turn on alarm for compleat loss of data"""
+        self.total_alert += 1
         self.no_output_alarm = True
         self.between_timer = self.get_between_timer(3)
         self.between_timer.start()
@@ -164,24 +170,29 @@ class AlertProcessor:
 
     def set_no_sub_alarm_enable(self):
         """Turn on alarm for no code 11 sub track"""
+        self.total_alert += 1
+        self.total_no_sub += 1
         self.no_sub_alarm = True
         logger.info("no sub track alarm set")
         self.refresh_alarm()
 
     def set_boundary_alarm(self):
         """Trun on alarm for projected boundary"""
+        self.total_alert += 1
         self.boundary_alarm = True
         logger.info("boundary alarm set")
         self.refresh_alarm()
 
     def set_invalid_alarm(self):
         """Turn on alarm for invalid data"""
+        self.total_alert += 1
         self.valid_alarm = True
         logger.info("invaild alarm set")
         self.refresh_alarm()
 
     def set_depth_alarm(self):
         """Turn on alarm for under 220 foot depth"""
+        self.total_alert += 1
         self.depth_alarm = True
         logger.info("depth alarm set")
         self.refresh_alarm()
@@ -222,6 +233,7 @@ class AlertProcessor:
     def clear_alert(self):
         """Turns on the Alarm_Enablew"""
         self.alarm_enable = False
+        self.total_alert = 0
         logger.info("Alert Enable Now OFF")
 
     def set_alert(self):
@@ -256,6 +268,15 @@ class AlertProcessor:
             logger.debug(f"eanbled from depth_alarm")
         else:
             logger.debug(f"no changes made")
+
+    def get_alarm_state(self) -> dict:
+        """Returns a dictionary containing the current state of the alert processor
+        """
+        return {"alarm_enable": self.alarm_enable, "no_output_alarm": self.no_output_alarm, "no_sub_alarm": self.no_sub_alarm,
+                "valid_alarm": self.valid_alarm, "depth_alarm": self.depth_alarm, "boundary_alarm": self.boundary_alarm,
+                "depth_violations": self.depth_violation_count, "consec_valid": self.consec_valid, "bounds_violations": self.bounds_violation_count,
+                "invalid_data": self.invalid_data_count, "total_valid_track": self.total_valid_track, "total_alert": self.total_alert,
+                "total_no_sub": self.total_no_sub}
 
     def __new__(cls):
         """Function to force Alert Processor to only have 1 instance. 
@@ -305,7 +326,11 @@ class AlertProcessor:
         #count variables for number of violoations
         self.invalid_data_count = 0
         self.depth_violation_count = 0
-        self.bounds_violation = 0
+        self.bounds_violation_count = 0
+
+        self.total_valid_track = 0
+        self.total_no_sub = 0
+        self.total_alert = 0
 
         #max number the violation counts can be before enable alarm
         self.id_max_count = config_args["invalid_data_max_count"]
