@@ -267,7 +267,6 @@ class App(Tk):
                         child_widget.configure(bg="green")
                     else:
                         child_widget.configure(bg="red")
-
                 elif child_widget.winfo_name() == "5_consec_trk_info":
                     if state.alarm_data["5_valid"]:
                         child_widget.configure(bg="green")
@@ -290,19 +289,19 @@ class App(Tk):
                         child_widget.configure(bg="red")
                 elif child_widget.winfo_name() == "send_warn":
                     if state.alarm_data["send_warn"]:
-                        child_widget.configure(bg="green")
+                        child_widget.configure(bg="yellow")
                     else:
-                        child_widget.configure(bg="red")
+                        child_widget.configure(bg="gray")
                 elif child_widget.winfo_name() == "alarm_enable":
                     if state.alarm_data["alarm_enable"]:
-                        child_widget.configure(bg="green")
+                        child_widget.configure(bg="yellow")
                     else:
-                        child_widget.configure(bg="red")
+                        child_widget.configure(bg="gray")
                 elif child_widget.winfo_name() == "alarm_on":
                     if state.alarm_data["alarm_on"]:
-                        child_widget.configure(bg="green")
-                    else:
                         child_widget.configure(bg="red")
+                    else:
+                        child_widget.configure(bg="gray")
 
         # Plotting Bounds
         t_inner = np.array(statics.coords_inner).T
