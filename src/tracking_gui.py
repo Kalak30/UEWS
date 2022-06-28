@@ -74,6 +74,11 @@ class App(Tk):
         self.y_val = StringVar(info_frame,"0")
         self.z_val = StringVar(info_frame,"0")
         self.speed_val = StringVar(info_frame,"0")
+        self.valid_tracks_val = StringVar(info_frame, "0")
+        self.no_sub_data_val = StringVar(info_frame, "0")
+        self.alert_count_val = StringVar(info_frame, "0")
+        self.depth_violation_val = StringVar(info_frame, "0")
+
 
         # Creating Labels
         Label(info_frame, text="proj_x", anchor="e", width=10,
@@ -111,18 +116,38 @@ class App(Tk):
         Label(info_frame, text="sub pos good", anchor="e", width=10, wraplength=65, padx=2,
               borderwidth=3, relief="ridge").grid(row=4, column=7, sticky='w')
 
+        Label(info_frame, text="Send Warning Tones", anchor="e", width=10, wraplength=65, padx=2,
+              borderwidth=3, relief="ridge").grid(row=0, column=9, sticky='w')
+        Label(info_frame, text="Alarm Enable", anchor="e", width=10, wraplength= 65, padx=2,
+              borderwidth=3, relief="ridge").grid(row=1, column=9, sticky='w')
+        Label(info_frame, text="Alarm On", anchor="e", width=10, wraplength=65, padx=2,
+              borderwidth=3, relief="ridge").grid(row=2, column=9, sticky='w')
+
+        Label(info_frame, text="Valid Track Pts", anchor="e", width=15,
+              borderwidth=3, relief="ridge").grid(row=0,column=10, sticky='e')
+        Label(info_frame, text="No Sub Data", anchor="e", width=15,
+              borderwidth=3, relief="ridge").grid(row=1,column=10, sticky='e')
+        Label(info_frame, text="Alert Count", anchor="e", width=15,
+              borderwidth=3, relief="ridge").grid(row=2, column=10, sticky='e')
+        Label(info_frame, text="Depth Violations", anchor="e", width=15,
+              borderwidth=3, relief="ridge").grid(row=3, column=10, sticky='e')
         
 
 
         # Creating Info
-        Label(info_frame, textvariable=self.proj_x_val, width=10, name="proj_x_info").grid(row=0, column=1, sticky='w')
-        Label(info_frame, textvariable=self.proj_y_val, width=10, name="proj_y_info").grid(row=1, column=1,sticky='w')
-        Label(info_frame, textvariable=self.x_val, width=10, name="x_info").grid(row=0, column=3, sticky='w')
-        Label(info_frame, textvariable=self.y_val, width=10, name="y_info").grid(row=1, column=3, sticky='w')
-        Label(info_frame, textvariable=self.z_val, width=10, name="z_info").grid(row=2, column=3, sticky='w')
-        Label(info_frame, textvariable=self.course_val, width=10, name="course_info").grid(row=3, column=1, sticky='w')
-        Label(info_frame, textvariable=self.tp_course_val, width=10, name="tp_course_info").grid(row=4, column=1, sticky='w')
-        Label(info_frame, textvariable=self.speed_val, width=10, name="speed_info").grid(row=4, column=3, sticky='w')
+        Label(info_frame, textvariable=self.proj_x_val, width=10).grid(row=0, column=1, sticky='w')
+        Label(info_frame, textvariable=self.proj_y_val, width=10).grid(row=1, column=1,sticky='w')
+        Label(info_frame, textvariable=self.x_val, width=10).grid(row=0, column=3, sticky='w')
+        Label(info_frame, textvariable=self.y_val, width=10).grid(row=1, column=3, sticky='w')
+        Label(info_frame, textvariable=self.z_val, width=10).grid(row=2, column=3, sticky='w')
+        Label(info_frame, textvariable=self.course_val, width=10).grid(row=3, column=1, sticky='w')
+        Label(info_frame, textvariable=self.tp_course_val, width=10).grid(row=4, column=1, sticky='w')
+        Label(info_frame, textvariable=self.speed_val, width=10).grid(row=4, column=3, sticky='w')
+
+        Label(info_frame, textvariable=self.valid_tracks_val, width=10).grid(row=0, column=11, sticky='w')
+        Label(info_frame, textvariable=self.no_sub_data_val, width=10).grid(row=1, column=11, sticky='w')
+        Label(info_frame, textvariable=self.alert_count_val, width=10).grid(row=2, column=11, sticky='w')
+        Label(info_frame, textvariable=self.depth_violation_val, width=10).grid(row=3, column=11, sticky='w')
 
         Label(info_frame, text="", width=5, height=2, name="x_ok_info", pady=1,
               borderwidth=2, relief="groove", bg="gray").grid(row=0, column=4, sticky='e')
@@ -141,6 +166,13 @@ class App(Tk):
               borderwidth=2, relief="groove", bg="gray").grid(row=2, column=6, sticky='e')
         Label(info_frame, text="", width=5, height=2, name="sub_pos_good_info", pady=1,
               borderwidth=2, relief="groove", bg="gray").grid(row=4, column=6, sticky='e')
+
+        Label(info_frame, text="", width=5, height=2, name="send_warn", pady=1,
+              borderwidth=2, relief="groove", bg="gray").grid(row=0, column=8, sticky='e')
+        Label(info_frame, text="", width=5, height=2, name="alarm_enable", pady=1,
+              borderwidth=2, relief="groove", bg="gray").grid(row=1, column=8, sticky='e')
+        Label(info_frame, text="", width=5, height=2, name="alarm_on", pady=1,
+              borderwidth=2, relief="groove", bg="gray").grid(row=2, column=8, sticky='e')
 
         
         info_frame.pack(fill=BOTH, expand=True)
@@ -201,10 +233,17 @@ class App(Tk):
             self.course_val.set(str("{:.1f}").format(course))
             self.tp_course_val.set(str("{:.1f}").format(tp_course))
             self.speed_val.set(str("{:.1f}").format(new_record.knots))
+
+            self.valid_tracks_val.set(str(state.counters["total_valid_track"]))
+            self.no_sub_data_val.set(str(state.counters["total_no_sub"]))
+            self.alert_count_val.set(str(state.counters["total_alert"]))
+            self.depth_violation_val.set(str(state.counters["depth_violations"]))
+
             
             child_widgets = self.top_frame.winfo_children()
             logging.debug(f"alarm_data: {state.alarm_data}")
             logging.debug(f"valid_data: {state.valid_data}")
+            logging.debug(f"coutners: {state.counters}")
             # TODO: Is there some way to do this with a function / callback maybe
             
             for child_widget in child_widgets:
@@ -246,6 +285,21 @@ class App(Tk):
                         child_widget.configure(bg="red")
                 elif child_widget.winfo_name() == "sub_pos_good_info":
                     if state.alarm_data["sub_pos_good"]:
+                        child_widget.configure(bg="green")
+                    else:
+                        child_widget.configure(bg="red")
+                elif child_widget.winfo_name() == "send_warn":
+                    if state.alarm_data["send_warn"]:
+                        child_widget.configure(bg="green")
+                    else:
+                        child_widget.configure(bg="red")
+                elif child_widget.winfo_name() == "alarm_enable":
+                    if state.alarm_data["alarm_enable"]:
+                        child_widget.configure(bg="green")
+                    else:
+                        child_widget.configure(bg="red")
+                elif child_widget.winfo_name() == "alarm_on":
+                    if state.alarm_data["alarm_on"]:
                         child_widget.configure(bg="green")
                     else:
                         child_widget.configure(bg="red")

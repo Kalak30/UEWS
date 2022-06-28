@@ -52,6 +52,8 @@ def main():
             #create tspi store with specified time to live (ttl)
             store = tspi.TSPIStore(ttl=7)
             # Main loop
+            pos_good = True
+            proj_pos_good = True
             while True:
                 # received_data(client)
                 msg = str(client.recv()) # Blocking
@@ -86,9 +88,11 @@ def main():
                     
                 
                 # Check current pos is in
-                pos_good = True
                 if bounds_check.in_bounds(new_record.position):
-                    AP.bounds_ok()
+                    # Avoid overriding the bounds error from projected position
+                    pos_good = True
+                    if proj_pos_good:
+                        AP.bounds_ok()
                 else:
                     pos_good = False
                     AP.bounds_violation()
@@ -102,9 +106,11 @@ def main():
                 store.get_prediction(new_record, custom_proj)
 
                 # Check projected pos in
-                proj_pos_good = True
                 if bounds_check.in_bounds(new_record.proj_position):
-                    AP.bounds_ok()
+                    # Avoid stepping on position bounds error
+                    proj_pos_good = True
+                    if pos_good:
+                        AP.bounds_ok()
                 else:
                     proj_pos_good = False
                     AP.bounds_violation()
@@ -113,9 +119,14 @@ def main():
                  # Create and send state to GUI client
                 valid_data = {"x": valid_x, "y": valid_y, "z": valid_z, "speed": valid_speed}
                 ap_state = AP.get_alarm_state()
+
                 alarm_data = {"5_valid": (ap_state["consec_valid"] == 0), "sub_in": pos_good, 
-                              "proj_pos_good": proj_pos_good, "sub_pos_good": valid_x and valid_y and valid_z and valid_speed}
-                state = calculation_state.CalculationState(store, msg, valid_data, alarm_data)
+                              "proj_pos_good": proj_pos_good, "sub_pos_good": valid_x and valid_y and valid_z and valid_speed,
+                              "send_warn": False, "alarm_enable": ap_state["alarm_enable"], "alarm_on": False}
+
+                counters = {"depth_violations": ap_state["depth_violations"], "total_alert": ap_state["total_alert"], 
+                            "total_no_sub": ap_state["total_no_sub"], "total_valid_track": ap_state["total_valid_track"]}
+                state = calculation_state.CalculationState(store, msg, valid_data, alarm_data, counters)
                 tr_conn.send(state)
 
 
