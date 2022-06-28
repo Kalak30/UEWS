@@ -72,6 +72,7 @@ class App(Tk):
         self.no_sub_data_val = StringVar(info_frame, "0")
         self.alert_count_val = StringVar(info_frame, "0")
         self.depth_violation_val = StringVar(info_frame, "0")
+        self.raw_rsdf = StringVar(info_frame, "")
 
 
         # Creating Labels
@@ -168,6 +169,9 @@ class App(Tk):
         Label(info_frame, text="", width=5, height=2, name="alarm_on", pady=1,
               borderwidth=2, relief="groove", bg="gray").grid(row=2, column=8, sticky='e')
 
+        Label(info_frame, textvariable=self.raw_rsdf, name="raw_rsdf_info", pady=1,
+              borderwidth=2, relief="groove", justify="left").grid(row=0, column=14, rowspan=4, columnspan=3)
+
         
         info_frame.pack(fill=BOTH, expand=True)
         self.graph.get_tk_widget().pack(fill=BOTH, expand=True)
@@ -233,6 +237,8 @@ class App(Tk):
             self.alert_count_val.set(str(state.counters["total_alert"]))
             self.depth_violation_val.set(str(state.counters["depth_violations"]))
 
+            self.raw_rsdf.set(state.rsdf)
+
             
             child_widgets = self.top_frame.winfo_children()
             logging.debug(f"alarm_data: {state.alarm_data}")
@@ -284,19 +290,19 @@ class App(Tk):
                         child_widget.configure(bg="red")
                 elif child_widget.winfo_name() == "send_warn":
                     if state.alarm_data["send_warn"]:
-                        child_widget.configure(bg="green")
+                        child_widget.configure(bg="yellow")
                     else:
-                        child_widget.configure(bg="red")
+                        child_widget.configure(bg="gray")
                 elif child_widget.winfo_name() == "alarm_enable":
                     if state.alarm_data["alarm_enable"]:
-                        child_widget.configure(bg="green")
+                        child_widget.configure(bg="yellow")
                     else:
-                        child_widget.configure(bg="red")
+                        child_widget.configure(bg="gray")
                 elif child_widget.winfo_name() == "alarm_on":
                     if state.alarm_data["alarm_on"]:
-                        child_widget.configure(bg="green")
-                    else:
                         child_widget.configure(bg="red")
+                    else:
+                        child_widget.configure(bg="gray")
 
         # Plotting Bounds
         t_inner = np.array(statics.coords_inner).T
