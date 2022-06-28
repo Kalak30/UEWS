@@ -1,0 +1,9 @@
+*.log
+*.pyc
+src/__pycache__/tspi.cpython-310.pyc
+src/__pycache__/tspi_calc.cpython-310.pyc
+src/__pycache__/statics.cpython-310.pyc
+src/__pycache__/function_decorators.cpython-310.pyc
+src/__pycache__/alert_processor.cpython-310.pyc
+src/__pycache__/configurator.cpython-310.pyc
+src/__pycache__/rsdf_parse.cpython-310.pyc
