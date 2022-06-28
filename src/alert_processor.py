@@ -10,12 +10,15 @@ class AlertProcessor:
 
     #get timers for differnt alarm types
     def get_no_data_timer(self, time):
+        """timer for complete loss of data"""
         return threading.Timer(time, self.set_no_data_alarm)
 
     def get_no_sub_timer(self, time):
+        """Timer for no code 11 sub track"""
         return threading.Timer(time, self.set_no_sub_alarm_enable)
 
     def get_between_timer(self, time):
+        """Timer for monitoring the time in between messages"""
         return threading.Timer(time, self.print_between)
 
     #function for get_between to call
@@ -140,10 +143,10 @@ class AlertProcessor:
             self.clear_depth_alarm()
         return
 
-    def bounds_violation_alert(self):
+    def bounds_violation(self):
         """Handles out of projected boundary. Adds to 2/5 counter"""
-        self.bounds_violation += 1
-        if self.bounds_violation >= self.bounds_max_count:
+        self.bounds_violation_count += 1
+        if self.bounds_violation_count >= self.bounds_max_count:
             self.set_boundary_alarm()
 
     def bounds_ok(self):
@@ -305,7 +308,7 @@ class AlertProcessor:
         #count variables for number of violoations
         self.invalid_data_count = 0
         self.depth_violation_count = 0
-        self.bounds_violation = 0
+        self.bounds_violation_count = 0
 
         #max number the violation counts can be before enable alarm
         self.id_max_count = config_args["invalid_data_max_count"]

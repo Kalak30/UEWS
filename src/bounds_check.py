@@ -27,6 +27,8 @@ def in_bounds(x, y, z):
 
 #return false is invalid, also check 
 def check_vaild_record(pos, knots):
+    """Checks if the position and speed of the data is within reason. 
+    :return false if outside of reason, true of valid(within reason)"""
     if pos.x < x_outlier.lower or pos.x > x_outlier.upper or pos.y < y_outlier.lower or \
             pos.y > y_outlier.upper or pos.z < z_outlier.lower or pos.z > z_outlier.upper or \
             knots > speed_outlier.upper:
@@ -38,7 +40,11 @@ def check_vaild_record(pos, knots):
 
 #return false is out of depth, true if ok
 def check_in_depth(depth):
+    """Checks if depth is below -220 feet. Pretty simple really
+    :return true if depth is above -220, false if below -220 feet"""
     if depth < -220:
         return False
-
     return True
+
+def check_project_boundary(proj_position : Vector):
+    return

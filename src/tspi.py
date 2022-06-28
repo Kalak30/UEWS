@@ -23,6 +23,7 @@ class TSPIRecord:
         self.knots = 0
         self.heading = 0
         self.set_pose(position, knots, heading)
+        self.proj_position = Vector(0,0,0)
 
         # Time in datetime format
         self.time = time
@@ -65,6 +66,7 @@ class TSPIRecord:
         logger.debug(f"d_x: {self.deltas.x}, d_y: {self.deltas.y}, d_z: {self.deltas.z} ")
         logger.debug(f"x_speed: {self.speed.x}, y_speed: {self.speed.y}")
         logger.debug(f"heading: {self.heading}, knots: {self.knots}, time: {self.time} ")
+        logger.debug(f"proj_x: {self.proj_position.x}, proj_y: {self.proj_position.y}, proj_z: {self.proj_position.z}")
         logger.debug("end values printing\n")
 
 
@@ -90,6 +92,10 @@ class TSPIStore:
         self.total_speeds.x -= deltas.x
         self.total_speeds.y -= deltas.y
         self.total_speeds.z -= deltas.z
+
+
+
+
 
     def add_record(self, record: TSPIRecord):
         """Adds a new record to the store. At the same time removes any stale records.
@@ -118,8 +124,17 @@ class TSPIStore:
             self.records.pop()
             logger.debug("Popped old record")
 
+
         self.records.appendleft(record)
         logger.debug(f"len after appending: {len(self.records)}")
+
+        #set the predicted position of the record
+        #TODO add config for custom or given projection calculation
+        record.proj_position = tspi_calc.get_predict_given(record.position, record.speed, 60) #TODO change seconds param to be configurable
+        #avg_speeds = self.get_average_speeds()
+        #record.proj_position = tspi_calc.get_predict_custom(record.position, avg_speeds, 60)
+
+
 
     def get_newest_record(self):
         """Returns the newest (leftmost) record"""

@@ -73,6 +73,12 @@ def main():
                     AP.depth_violation()
 
                 #TODO cehck boundary projections
+                if(bounds_check.check_project_boundary(new_record.proj_position)):
+                    AP.bounds_violation()
+                else:
+                    AP.bounds_ok()
+
+                new_record.print_values()
 
 
         except EOFError as e:
