@@ -1,7 +1,5 @@
-from asyncio.windows_events import NULL
-from ctypes.util import find_library
+
 import time
-from tabnanny import check
 import numpy as np
 
 from multiprocessing.connection import Client
@@ -67,18 +65,21 @@ def main():
                 # parse data
                 new_record = rsdf_parse.parse_data(msg)
 
-                if(new_record == NULL):
+                if(new_record == None):
                     AP.recived_noCode11_data()
                     continue
 
                 #reset sub timer
                 AP.recived_all_data()
 
-                #check data in record (if not vailid aka false, don't store)
-                if(bounds_check.check_vaild_record(new_record.position, new_record.knots)):
+                valid_x = bounds_check.check_x(new_record.position.x)
+                valid_y = bounds_check.check_y(new_record.position.y)
+                valid_z = bounds_check.check_z(new_record.position.z)
+                valid_speed = bounds_check.check_speed(new_record.knots)
+
+                if valid_x and valid_y and valid_z and valid_speed:
                     store.add_record(new_record)
                     AP.valid_data()
-                    
                 else:
                     AP.invalid_data()
                     
@@ -90,8 +91,9 @@ def main():
 
                 #get projections
                 store.get_prediction(new_record, custom_proj)
-
-                state = calculation_state.CalculationState(store, msg)
+                
+                valid_data = {"x": valid_x, "y": valid_y, "z": valid_z, "speed": valid_speed}
+                state = calculation_state.CalculationState(store, msg, valid_data)
 
                 
                 tr_conn.send(state)

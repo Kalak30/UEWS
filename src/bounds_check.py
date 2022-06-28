@@ -25,20 +25,26 @@ def in_bounds(position):
 
     return pos.within(outer_poly)
 
+def check_x(x):
+    """Returns true if x value is within the allowed bounds. False otherwise
+    """
+    return x >= x_outlier.lower or x <= x_outlier.upper
 
-#return false is invalid, also check 
-def check_vaild_record(pos, knots):
-    """Checks if the position and speed of the data is within reason. 
-    :return false if outside of reason, true of valid(within reason)"""
-    if pos.x < x_outlier.lower or pos.x > x_outlier.upper or pos.y < y_outlier.lower or \
-            pos.y > y_outlier.upper or pos.z < z_outlier.lower or pos.z > z_outlier.upper or \
-            knots > speed_outlier.upper:
-        return False
-    return True
+def check_y(y):
+    """Returns true if y value is within the allowed bounds. False otherwise
+    """
+    return y >= y_outlier.lower or y <= y_outlier.upper
+
+def check_z(z):
+    """Returns true if z value is within the allowed bounds. False otherwise
+    """
+    return z >= z_outlier.lower or z <= z_outlier.upper
+
+def check_speed(knots):
+    """Returns true if speed value is within the allowed bounds. False otherwise
+    """
+    return knots <= speed_outlier.upper
     
-    #else return true (valid)
-    return True
-
 #return false is out of depth, true if ok
 def check_in_depth(depth):
     """Checks if depth is below -220 feet. Pretty simple really

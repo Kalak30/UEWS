@@ -1,4 +1,5 @@
 import math
+from tspi import Vector
 from statics import *
 import logging
 

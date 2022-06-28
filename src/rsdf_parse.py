@@ -2,7 +2,6 @@
 Parses different PSK record types and parses a PSK record.
 Able to count the amount of PP messages received
 """
-from asyncio.windows_events import NULL
 import logging
 import datetime
 import tspi_calc
@@ -114,7 +113,7 @@ def parse_data(message):
             if not has_Code11:
                 #raise Exception("No code 11")
                 logger.debug("No code 11")
-                return NULL
+                return None
             # Calculate X and Y speed from knots and heading
             x_speed, y_speed = tspi_calc.get_speed_from_knots(knots=input_position[4], heading=input_position[3])
 
