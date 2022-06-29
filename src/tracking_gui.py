@@ -46,6 +46,7 @@ class App(Tk):
         self.create_widgets()
 
         # Listen to backend
+        # TODO: Make this configurable
         address = ('localhost', 6000)
         listener = Listener(address)
 
@@ -327,16 +328,19 @@ class App(Tk):
     def update_state(self, listener):
         global state
         global new_data
-        conn = listener.accept()
         while True:
+            conn = listener.accept()
             try:
                 state = conn.recv()
                 if type(state) is not calculation_state.CalculationState:
                     logging.error("Received something that was not a state object")
                 else:
                     self.gui_handler()
+                
             except EOFError as eof:
                 logging.debug("End of File")
+            finally:
+                conn.close()
             
             new_data = True
 
