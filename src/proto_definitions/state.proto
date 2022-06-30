@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package UEWS;
+
+message TSPIRecord{
+    int32 index = 1;
+    float x = 2;
+    float y = 3;
+    float z = 4;
+    float proj_x = 5;
+    float proj_y = 6;
+    float speed = 7;
+    float course = 8;
+}
+
+message TSPIStore{
+    
+    repeated TSPIRecord records = 1;
+}
+
+
+message State{
+    
+    bool valid_x = 1;
+    bool valid_y = 2;
+    bool valid_z = 3;
+    bool valid_speed = 4;
+
+    bool enough_valid_tracks = 5;
+    bool sub_in = 6;
+    bool proj_pos_good = 7;
+    bool send_warn = 8;
+    bool alarm_enable = 9;
+    bool alarm_on = 10;
+
+    int32 depth_violations = 11;
+    int32 total_alerts = 12;
+    int32 no_sub = 13;
+    int32 total_valid_track = 14;
+
+    optional bool reset = 32; 
+    string raw_rsdf = 15;
+    TSPIStore store = 16;
+}

@@ -3,27 +3,24 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
-from multiprocessing.connection import Listener
-
+import socket
+import proto_src.state_pb2 as StatePB
 import logging
 
 
 class ReceiverThread(QThread):
     new_state = pyqtSignal(object)
+    max_buff_size = 1024
     # TODO: Make address configurable
     def run(self):
         self.address = ('localhost', 6000)
-        self.listener = Listener(self.address)
+        sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+        sock.bind(self.address)
+        self.state = StatePB.State()
         while True:
-            conn = self.listener.accept()
-            try:
-                state = conn.recv()
-            except EOFError as eof:
-                logging.debug("End of File")
-            else:
-                self.new_state.emit(state)
-            finally:
-                conn.close()
+            self.data, self.conn_addr = sock.recvfrom(self.max_buff_size)
+            self.state.ParseFromString(self.data)
+            self.new_state.emit(self.state)
     
 
 class StateReceiver(QWidget):
@@ -79,73 +76,39 @@ class StateReceiver(QWidget):
         print(state)
         self.receivedState.emit(state)
 
-        # Set Defaults
-        x = 0
-        y = 0
-        z = 0
-        proj_x = 0
-        proj_y = 0
-        course = 0
+        # Extract Values
+        latest_record = state.store.records[0]
 
-        tp_course = 0
+        x = latest_record.x
+        y = latest_record.y
+        z = latest_record.z
+        proj_x = latest_record.proj_x
+        proj_y = latest_record.proj_y
+        course = latest_record.course
 
-        speed = 0
+        tp_course = course-11.3
+        if tp_course < 0:
+            tp_course += 360
 
-        valid_track_pts = 0
-        no_sub_count = 0
-        alert_count = 0
-        depth_violations = 0
+        speed = latest_record.speed
 
-        x_ok = False
-        y_ok = False
-        z_ok = False
-        speed_ok = False
+        valid_track_pts = state.total_valid_track
+        no_sub_count = state.no_sub
+        alert_count = state.total_alerts
+        depth_violations = state.depth_violations
 
-        valid_consec = False
-        sub_in = False
-        proj_pos_good = False
-        sub_pos_good = False
-        send_warn = False
-        alarm_enable = False
-        alarm_on = False
+        x_ok = state.valid_x
+        y_ok = state.valid_y
+        z_ok = state.valid_z
+        speed_ok = state.valid_speed
 
-        if not state.reset:
-             # Extract Values
-            latest_record = state.store.records[0]
-            valid_data = state.valid_data
-            alarm_data = state.alarm_data
-            counters = state.counters
-
-            x = latest_record.position.x
-            y = latest_record.position.y
-            z = latest_record.position.z
-            proj_x = latest_record.proj_position.x
-            proj_y = latest_record.proj_position.y
-            course = latest_record.heading
-
-            tp_course = course-11.3
-            if tp_course < 0:
-                tp_course += 360
-
-            speed = latest_record.knots
-
-            valid_track_pts = counters["total_valid_track"]
-            no_sub_count = counters["total_no_sub"]
-            alert_count = counters["total_alert"]
-            depth_violations = counters["depth_violations"]
-
-            x_ok = valid_data["x"]
-            y_ok = valid_data["y"]
-            z_ok = valid_data["z"]
-            speed_ok = valid_data["speed"]
-
-            valid_consec = alarm_data["5_valid"]
-            sub_in = alarm_data["sub_in"]
-            proj_pos_good = alarm_data["proj_pos_good"]
-            sub_pos_good = alarm_data["sub_pos_good"]
-            send_warn = alarm_data["send_warn"]
-            alarm_enable = alarm_data["alarm_enable"]
-            alarm_on = alarm_data["alarm_on"]
+        valid_consec = state.enough_valid_tracks
+        sub_in = state.sub_in
+        proj_pos_good = state.proj_pos_good
+        sub_pos_good = x_ok and y_ok and z_ok and speed_ok
+        send_warn = state.send_warn
+        alarm_enable = state.alarm_enable
+        alarm_on = state.alarm_on
 
 
         # Emit Values
