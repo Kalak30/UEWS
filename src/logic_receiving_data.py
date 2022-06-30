@@ -4,7 +4,9 @@ import numpy as np
 
 from multiprocessing.connection import Client
 from multiprocessing.connection import Listener
+from multiprocessing.pool import ThreadPool
 
+import threading
 import rsdf_parse
 import bounds_check
 import tspi
@@ -17,11 +19,6 @@ import calculation_state
 
 logger = logging.getLogger(__name__)
 
-# needs updating
-def alert_detector(current_position, last_position, current_time, last_time):
-    return 0
-
-
 # def setProjPosition(proj_pos, my_speed):
 def main():
     print("in main")
@@ -32,23 +29,18 @@ def main():
 
     # Both connections should end up being closed at some point
     # server
-    serv_address = ('', 5000)
+    serv_address = ('', 6545)
     serv = Listener(serv_address)
 
-    # Tracking GUI
-    tr_address = ('localhost', 6000)
-    tr_conn = None
-    while tr_conn is None:
-        try:
-            tr_conn = Client(tr_address)
-        except ConnectionRefusedError as e:
-            time.sleep(1) # Wait a bit for other processes to start
-            continue
+    
 
         
     while True:
         client = serv.accept()
         try:
+
+            
+
             #create tspi store with specified time to live (ttl)
             store = tspi.TSPIStore(ttl=7)
             # Main loop
@@ -56,7 +48,7 @@ def main():
             while True:
                 # received_data(client)
                 msg = str(client.recv()) # Blocking
-                #print(msg)
+                print(msg)
 
                 #message recived, rest pp timer
                 
@@ -120,8 +112,24 @@ def main():
 
                 counters = {"depth_violations": ap_state["depth_violations"], "total_alert": ap_state["total_alert"], 
                             "total_no_sub": ap_state["total_no_sub"], "total_valid_track": ap_state["total_valid_track"]}
+                            
                 state = calculation_state.CalculationState(store, msg, valid_data, alarm_data, counters)
-                tr_conn.send(state)
+
+                # Tracking GUI Connect
+                tr_address = ('localhost', 6000)
+                tr_conn = None
+
+                try:
+                    tr_conn = Client(tr_address)
+                except ConnectionRefusedError as e:
+                    logger.exception("Connection to Tracking GUI failed because connection was refused. Trying again")
+                except:
+                    logger.exception("Connection to Tracking GUI threw unkown exception")
+
+                if tr_conn is not None:
+                    # Send the state and close
+                    tr_conn.send(state)
+                    tr_conn.close()
 
 
                 new_record.print_values()
