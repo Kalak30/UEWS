@@ -23,11 +23,25 @@
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
-      <layout class="QGridLayout" name="ConnectionSettings" columnstretch="4,2">
-       <item row="1" column="1">
+      <layout class="QGridLayout" name="ConnectionSettings" columnstretch="4,0,0">
+       <item row="1" column="2">
         <widget class="QLineEdit" name="ip_address_input"/>
        </item>
        <item row="0" column="0">
+        <widget class="QPushButton" name="pause_button">
+         <property name="text">
+          <string>Pause Testing</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QPushButton" name="change_connection_button">
+         <property name="text">
+          <string>Change Connection</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
         <widget class="QLabel" name="port">
          <property name="text">
           <string>Port</string>
@@ -37,10 +51,10 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
+       <item row="0" column="2">
         <widget class="QLineEdit" name="port_input"/>
        </item>
-       <item row="1" column="0">
+       <item row="1" column="1">
         <widget class="QLabel" name="ip_address">
          <property name="text">
           <string>ip_address</string>
@@ -50,12 +64,30 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
-        <widget class="QPushButton" name="pushButton">
+       <item row="2" column="0">
+        <widget class="QPushButton" name="restart_button">
          <property name="text">
-          <string>Change Connection</string>
+          <string>Restart Testing</string>
          </property>
         </widget>
+       </item>
+       <item row="1" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QPushButton" name="OpenFileButton">
+           <property name="text">
+            <string>Choose New Test File</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="selected_file">
+           <property name="text">
+            <string>TextLabel</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>

@@ -1,0 +1,10 @@
+{
+    "protoc": {
+        "path": "${workspaceRoot}/protoc-21.2-win64/bin/protoc",
+        "compile_on_save": false,
+        "options": [
+            "--proto_path=${workspaceRoot}/src/proto_definitions",
+            "--python_out=${workspaceRoot}/src/proto_src"
+        ]
+    }
+}

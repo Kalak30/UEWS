@@ -14,15 +14,6 @@
             "justMyCode": true
         },
         {
-            "name": "Tracking GUI",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/src/tracking_gui.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/src/",
-            "justMyCode": true
-        },
-        {
             "name": "Tracking GUI PyQt5",
             "type": "python",
             "request": "launch",
@@ -36,15 +27,6 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/logic_receiving_data.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/src/",
-            "justMyCode": true
-        },
-        {
-            "name": "Test Server",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/src/sending_data.py",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/src/",
             "justMyCode": true
