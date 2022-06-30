@@ -312,13 +312,14 @@ class AlertProcessor:
         self.depth_alarm = False
         self.boundary_alarm = False
 
+        # TODO: Add time dilation
         # Length in seconds of timer until an alert should be given if no sub track on PSK
         self.no_sub_alert_time = 5
 
         # Length in seconds of timer until an alert should be given if no output data received from RDMS
         self.no_output_alert_time = 10        #TODO add config for how long till alert if not data (config_args[""])
 
-        self.between_time_max = 3   #TODO add config for how long till alert if not data (config_args[""])
+        self.between_time_max = 2.1   #TODO add config for how long till alert if not data (config_args[""])
 
         #count variable for num consecutive messages after loss of data
         self.consec_valid = 0
