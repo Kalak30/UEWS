@@ -26,7 +26,7 @@
             "name": "Tracking GUI PyQt5",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/Tracking_UI/tracking_gui.py",
+            "program": "${workspaceFolder}/src/Tracking_UI/tracking_gui_driver.py",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/src/",
             "justMyCode": true
@@ -48,12 +48,21 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/src/",
             "justMyCode": true
+        },
+        {
+            "name": "Test Server GUI",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/Testing_UI/testing_gui_driver.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/src/",
+            "justMyCode": true
         }
     ],
     "compounds":[
         {
             "name": "GUI Test",
-            "configurations": ["Tracking GUI PyQt5", "UEWS Backend", "Test Server"],
+            "configurations": ["Tracking GUI PyQt5", "UEWS Backend", "Test Server GUI"],
             "stopAll": true
         }
     ]

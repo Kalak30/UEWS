@@ -1,6 +1,15 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from QLed import QLed
-from generated_ui import Ui_UEWS_Tracking_GUI
+import sys
+import os
+
+# Add src to path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.dirname(current_dir))
+
+from generated_ui.tracking_ui import Ui_UEWS_Tracking_GUI
+
+
 
 def init_light(qled: QLed):
     qled.setOffColour(QLed.Red)

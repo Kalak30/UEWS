@@ -29,7 +29,7 @@ def main():
 
     # Both connections should end up being closed at some point
     # server
-    serv_address = ('', 5000)
+    serv_address = ('', 6545)
     serv = Listener(serv_address)
 
     
@@ -49,7 +49,7 @@ def main():
             while True:
                 # received_data(client)
                 msg = str(client.recv()) # Blocking
-                #print(msg)
+                print(msg)
 
                 #message recived, rest pp timer
                 
