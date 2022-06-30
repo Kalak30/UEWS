@@ -111,6 +111,10 @@ class TSPIStore:
 
 
 
+    def clear_totals(self):
+        self.total_speeds.x = 0
+        self.total_speeds.y = 0
+        self.total_speeds.z = 0
 
 
     def add_record(self, record: TSPIRecord):
@@ -137,9 +141,13 @@ class TSPIStore:
         # Iterates through the oldest records, popping them off if they do not meet ttl
         # Also ensures that the total speeds are kept up to date
         while len(self.records) > 0 and self.records[-1].is_old(self.record_ttl, new_time):
-            self.decrease_totals(deltas=self.records[-1].deltas)
             self.records.pop()
             logger.debug("Popped old record")
+            if len(self.records) == 0:
+                self.clear_totals()
+            else:
+                self.decrease_totals(deltas=self.records[-1].deltas)
+
 
 
         self.records.appendleft(record)
@@ -158,6 +166,8 @@ class TSPIStore:
 
     def get_newest_record(self):
         """Returns the newest (leftmost) record"""
+        if len(self.records) == 0:
+            return 0
         return self.records[0]
 
     def get_average_speeds(self):
@@ -167,10 +177,30 @@ class TSPIStore:
         if record_len == 1:
             return avg_speed
 
+
+        #previously calculated using a running total speed
+        """
         avg_speed.x = self.total_speeds.x/record_len
         avg_speed.y = self.total_speeds.y/record_len
         avg_speed.z = self.total_speeds.z/record_len
+        """
+        #instead, just use first and last position
+        pos_oldest = self.records[-1].position
+        pos_newest = self.records[0].position
 
+        #we need to caculated using time passed instead of number of records becuase some records might be missing
+        time_oldest = self.records[-1].time
+        time_newest = self.records[0].time
+
+        #get time difference
+        time_dif = time_newest - time_oldest
+        seconds = abs(time_dif.total_seconds())
+
+        #get everage with position change/time passed
+        avg_speed.x = (pos_newest.x - pos_oldest.x)/(seconds)
+        avg_speed.y = (pos_newest.y - pos_oldest.y)/(seconds)
+        avg_speed.z = (pos_newest.z - pos_oldest.z)/(seconds)        
+        
         return avg_speed
 
     def print_all_records(self):
