@@ -5,8 +5,7 @@ import logging
 from tspi_calc import get_time_diff, get_delta, get_predict_given, get_predict_custom
 from recordclass import recordclass 
 from collections import deque
-import bounds_check
-
+import proto_src.state_pb2 as StatePB
 
 logger = logging.getLogger(__name__)
 Vector = recordclass("Vector", "x y z")
@@ -71,6 +70,21 @@ class TSPIRecord:
         logger.debug(f"feet: proj_x: {self.proj_position.x}, proj_y: {self.proj_position.y}, proj_z: {self.proj_position.z}")
         logger.debug(f"yards: proj_x: {self.proj_position.x/3}, proj_y: {self.proj_position.y/3}, proj_z: {self.proj_position.z/3}")
         logger.debug("end values printing\n")
+    
+    def toProtoBuf(self):
+        """Returns a protobuf object containing
+            details of this record
+        """
+        record_pb = StatePB.TSPIRecord()
+        record_pb.x = self.position.x
+        record_pb.y = self.position.y
+        record_pb.z = self.position.z
+        record_pb.proj_x = self.proj_position.x
+        record_pb.proj_y = self.proj_position.y
+        record_pb.speed = self.knots
+        record_pb.course = self.heading
+        return record_pb
+
 
 class TSPIStore:
     """Store records in a Deque while their time is within the ttl
@@ -194,3 +208,14 @@ class TSPIStore:
         logger.debug("\nPrinting all records:\n")
         for record in self.records:
             record.print_values()
+
+    def toProtoBuf(self):
+        """Returns a protobuf object containing all information of the records
+           Within this store
+        """
+        store_pb = StatePB.TSPIStore()
+        for i in range(len(self.records)):
+            record_pb = self.records[i].toProtoBuf()
+            record_pb.index = i
+            store_pb.records.append(record_pb)
+        return store_pb
