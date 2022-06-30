@@ -51,8 +51,8 @@ class Canvas(FigureCanvas):
 
          # Get new positions and projected positions. This does not look through the store to see if there is anything we have missed
         new_record = state.store.records[0]
-        new_pos = np.array((new_record.position.x, new_record.position.y))
-        new_proj_pos = np.array((new_record.proj_position.x, new_record.proj_position.y))
+        new_pos = np.array((new_record.x, new_record.y))
+        new_proj_pos = np.array((new_record.proj_x, new_record.proj_y))
         logging.debug("=======")
         logging.debug("new state")
         logging.debug(f"new_pos: {new_pos}")
