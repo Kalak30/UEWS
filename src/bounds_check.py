@@ -5,7 +5,7 @@ import statistics
 from tkinter import INSIDE
 from statics import coords_inner, coords_outer, coords_center, outer_bound_depth, inner_bound_depth, center_bound_depth, x_outlier, y_outlier, z_outlier, speed_outlier
 from shapely.geometry import Point, Polygon
-from tspi import TSPIRecord, Vector
+
 
 inner_poly = Polygon(coords_inner)
 center_poly = Polygon(coords_center)
@@ -25,6 +25,10 @@ def in_bounds(position):
         return pos.within(center_poly)
 
     return pos.within(outer_poly)
+
+def distance_to_edge(position):
+    point = Point(position.x, position.y)
+    return inner_poly.exterior.distance(point)
 
 def check_x(x):
     """Returns true if x value is within the allowed bounds. False otherwise

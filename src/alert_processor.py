@@ -1,7 +1,12 @@
 from cgitb import reset
+from dis import dis
 import threading
 import logging
+from turtle import speed
+from bounds_check import distance_to_edge
 import configurator
+from tspi import TSPIRecord
+import bounds_check
 
 
 logger = logging.getLogger(__name__)
@@ -19,16 +24,51 @@ class AlertProcessor:
 
     def get_between_timer(self, time):
         """Timer for monitoring the time in between messages"""
-        return threading.Timer(time, self.print_between)
+        return threading.Timer(time, self.between_ended)
 
     #function for get_between to call
-    def print_between(self):
+    def between_ended(self):
+        #reset valid counter because missed a message
         logger.debug("between timer ran out")
+        self.consec_success = 0
          
-    def set_no_sub_alert_time():
-        #TODO calculate "r", the no subtack time, using info from tspi
+    def calculate_no_track_time(self, last_record: TSPIRecord):
+        #if there is no last record, set alarm
+        if last_record == 0:
+            return 0
+        time_till_alarm = 0
 
-        return
+        
+
+        distance_edge = bounds_check.distance_to_edge(last_record.position)
+        proj_distance_edge = bounds_check.distance_to_edge(last_record.proj_position)
+
+        distance_factor = 5
+        speed_factor = 12
+
+        if distance_edge < 1500*3:
+            distance_factor = 3
+        if distance_edge < 750*3:
+            distance_factor = 2
+
+        #if projected to closer to edge then current, then heading towards boundary. Decrease distanc factor
+        if proj_distance_edge < distance_edge:
+            distance_factor -= 1
+
+        #max alarm time with slow knots worse case is 7.8 seconds
+        if last_record.knots > 15:
+            speed_factor = 3 
+        elif last_record.knots > 10:
+            speed_factor = 5
+        elif last_record.knots > 5:
+            speed_factor = 8
+
+        #formula taken from old uews software.
+        time_till_alarm = distance_factor * speed_factor * .65
+
+        return time_till_alarm
+
+
 
     #----start timers----
     def start_no_output_timer(self):
@@ -37,16 +77,16 @@ class AlertProcessor:
         logger.debug("Started no output timer")
         return
 
-    def start_no_sub_data_timer(self):
-        """start timer for loss of code 11 sub track"""
+    def start_no_sub_data_timer(self, time):
+        self.sub_timer = self.get_no_sub_timer(time)
         self.sub_timer.start()
-        logger.debug("Started no subtrack timer")
+        logger.debug(f"No sub timer started with {time} seconds")
         return
 
 
     #----reset timers----
     def reset_no_output_timer(self):
-        """reset timer used for compleat loss of data incomming"""
+        """reset timer used for compleat loss of data incomming. Starts another timer to wait till next no output"""
         self.data_timer.cancel()
         self.data_timer = self.get_no_data_timer(self.no_output_alert_time)
         self.data_timer.start()
@@ -54,12 +94,14 @@ class AlertProcessor:
         #this does not clear alarm, need 5 in a row to clear alarm
         return
 
+
     def reset_no_sub_data_timer(self): #resets after any code 11 recived
-        """reset timer used for loss of code 11 sub track"""
-        self.sub_timer.cancel()
-        self.sub_timer = self.get_no_sub_timer(self.no_sub_alert_time)
-        self.sub_timer.start()
-        logger.debug("Reset no sub tack Timer") #TODO doulbe check 1 instance clears alarm
+        """reset timer used for loss of code 11 sub track. It does not start another timer, but stops one if there is one active"""
+        if self.sub_timer.is_alive():
+            self.sub_timer.cancel()
+            logger.debug("Ended no sub tack Timer")
+
+        #clear alarm if it was on
         if(self.no_sub_alarm):
             self.clear_no_sub_alarm()
         return
@@ -77,16 +119,23 @@ class AlertProcessor:
     def recived_all_data(self):
         """function to handle a complete incomming message (has code 11).
          We do NOT know yet if it has valid data"""
+        if self.no_output_alarm:
+            self.check_between()
+
         #reset timers because we have all data
         self.reset_no_output_timer()
         self.reset_no_sub_data_timer()
         return
 
-    def recived_noCode11_data(self):
+    def recived_noCode11_data(self, record : TSPIRecord):
         """Function to handle incommiong data that does NOT contain code 11 subtrack"""
         if self.no_output_alarm:
             self.check_between()
-
+        
+        #if timer has not started, start it
+        if not self.sub_timer.is_alive():
+            alarm_time = self.calculate_no_track_time(record)
+            self.start_no_sub_data_timer(alarm_time)
         #reset no-output timer becuase we have some type of data comming in
         self.reset_no_output_timer()
         return
@@ -95,14 +144,15 @@ class AlertProcessor:
     def check_between(self):
         """checks if message came in the last 3 seconds. If this happens 5 times in a row, turn off no output alarm"""
         if self.between_timer.is_alive():
-            self.consec_valid += 1
-            logger.debug(f"consecutive valid: {self.consec_valid}")
+            self.consec_success += 1
+            logger.debug(f"consecutive valid: {self.consec_success}")
         else:
-            self.consec_valid = 0
+            #if did not make it in time, reset counter to 1 becuase this is the first try for next 5 consec
+            self.consec_success = 1
 
-        if self.consec_valid > 5:
+        if self.consec_success >= 5:
             self.clear_no_output_alarm()
-            self.consec_valid = 0
+            self.consec_success = 0
         else:
             self.reset_between_timer()
         return
@@ -119,10 +169,6 @@ class AlertProcessor:
     def valid_data(self):
         """handles valid data point"""
         logger.debug("got valid data")
-
-        #check if no ouput alarm is on, and turn it off if 5th consecutive valid data
-        if self.no_output_alarm:
-            self.check_between()
 
 
         #reset invaid data counter. Clear alarm if it is on
@@ -288,7 +334,7 @@ class AlertProcessor:
         """
         return {"alarm_enable": self.alarm_enable, "no_output_alarm": self.no_output_alarm, "no_sub_alarm": self.no_sub_alarm,
                 "valid_alarm": self.valid_alarm, "depth_alarm": self.depth_alarm, "boundary_alarm": self.boundary_alarm,
-                "depth_violations": self.depth_violation_count, "consec_valid": self.consec_valid, "bounds_violations": self.bounds_violation_count,
+                "depth_violations": self.depth_violation_count, "consec_valid": self.consec_success, "bounds_violations": self.bounds_violation_count,
                 "invalid_data": self.invalid_data_count, "total_valid_track": self.total_valid_track, "total_alert": self.total_alert,
                 "total_no_sub": self.total_no_sub}
 
@@ -302,6 +348,11 @@ class AlertProcessor:
             cls.instance.initialized = False
         return cls.instance
    
+    def stop_all(self):
+        logger.debug("timers stopped")
+        self.sub_timer.cancel()
+        self.data_timer.cancel()
+        self.between_timer.cancel()
    
     def __init__(self):
         """init for Alert Processor. Creates all variables, also starts loss of data and no Code 11 timers."""
@@ -327,7 +378,7 @@ class AlertProcessor:
         self.boundary_alarm = False
 
         # Length in seconds of timer until an alert should be given if no sub track on PSK
-        self.no_sub_alert_time = 5
+        self.no_sub_alert_time = 39 #defulats to 39. #TODO add multiplier for speed up
 
         # Length in seconds of timer until an alert should be given if no output data received from RDMS
         self.no_output_alert_time = 10        #TODO add config for how long till alert if not data (config_args[""])
@@ -335,7 +386,7 @@ class AlertProcessor:
         self.between_time_max = 3   #TODO add config for how long till alert if not data (config_args[""])
 
         #count variable for num consecutive messages after loss of data
-        self.consec_valid = 0
+        self.consec_success = 0
 
         #count variables for number of violoations
         self.invalid_data_count = 0
@@ -357,7 +408,6 @@ class AlertProcessor:
 
         #create and start timer for no sub track
         self.sub_timer = self.get_no_sub_timer(self.no_sub_alert_time)
-        self.start_no_sub_data_timer()
 
         #in between data timer
         self.between_timer = self.get_between_timer(self.between_time_max)

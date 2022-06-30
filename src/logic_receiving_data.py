@@ -67,7 +67,7 @@ def main():
                 new_record = rsdf_parse.parse_data(msg)
 
                 if(new_record == None):
-                    AP.recived_noCode11_data()
+                    AP.recived_noCode11_data(store.get_newest_record())
                     continue
 
                 #reset sub timer
