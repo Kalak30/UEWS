@@ -327,7 +327,6 @@ class App(Tk):
 
     def update_state(self, listener):
         global state
-        global new_data
         while True:
             conn = listener.accept()
             try:
@@ -342,11 +341,6 @@ class App(Tk):
             finally:
                 conn.close()
             
-            new_data = True
-
-    
-    
-
 
 if __name__=="__main__":
     app = App()

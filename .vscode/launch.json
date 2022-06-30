@@ -19,7 +19,16 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/tracking_gui.py",
             "console": "integratedTerminal",
-            "cwd": "${fileDirname}",
+            "cwd": "${workspaceFolder}/src/",
+            "justMyCode": true
+        },
+        {
+            "name": "Tracking GUI PyQt5",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/Tracking_UI/Ui_Tracker UI.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/src/",
             "justMyCode": true
         },
         {
@@ -28,7 +37,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/logic_receiving_data.py",
             "console": "integratedTerminal",
-            "cwd": "${fileDirname}",
+            "cwd": "${workspaceFolder}/src/",
             "justMyCode": true
         },
         {
@@ -37,14 +46,14 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/sending_data.py",
             "console": "integratedTerminal",
-            "cwd": "${fileDirname}",
+            "cwd": "${workspaceFolder}/src/",
             "justMyCode": true
         }
     ],
     "compounds":[
         {
             "name": "GUI Test",
-            "configurations": ["Tracking GUI", "UEWS Backend", "Test Server"],
+            "configurations": ["Tracking GUI PyQt5", "UEWS Backend", "Test Server"],
             "stopAll": true
         }
     ]
