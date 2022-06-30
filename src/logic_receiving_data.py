@@ -19,6 +19,19 @@ import calculation_state
 
 logger = logging.getLogger(__name__)
 
+def getClientConn(address):
+
+    tr_conn = None
+
+    try:
+        tr_conn = Client(address)
+    except ConnectionRefusedError as e:
+        logger.exception("Connection to Tracking GUI failed because connection was refused. Trying again")
+    except:
+        logger.exception("Connection to Tracking GUI threw unkown exception")
+    
+    return tr_conn
+
 # def setProjPosition(proj_pos, my_speed):
 def main():
     print("in main")
@@ -32,14 +45,9 @@ def main():
     serv_address = ('', 6545)
     serv = Listener(serv_address)
 
-    
-
-        
     while True:
         client = serv.accept()
         try:
-
-            
 
             #create tspi store with specified time to live (ttl)
             store = tspi.TSPIStore(ttl=7)
@@ -113,18 +121,12 @@ def main():
                 counters = {"depth_violations": ap_state["depth_violations"], "total_alert": ap_state["total_alert"], 
                             "total_no_sub": ap_state["total_no_sub"], "total_valid_track": ap_state["total_valid_track"]}
                             
-                state = calculation_state.CalculationState(store, msg, valid_data, alarm_data, counters)
+                state = calculation_state.CalculationState(reset=False, store=store,  raw_rsdf=msg, valid_data = valid_data, 
+                                                           alarm_data=alarm_data, counters=counters)
 
                 # Tracking GUI Connect
                 tr_address = ('localhost', 6000)
-                tr_conn = None
-
-                try:
-                    tr_conn = Client(tr_address)
-                except ConnectionRefusedError as e:
-                    logger.exception("Connection to Tracking GUI failed because connection was refused. Trying again")
-                except:
-                    logger.exception("Connection to Tracking GUI threw unkown exception")
+                tr_conn = getClientConn(tr_address)
 
                 if tr_conn is not None:
                     # Send the state and close
@@ -137,7 +139,17 @@ def main():
 
         except EOFError as e:
             print("end of file")
-            break
+            state = calculation_state.CalculationState(reset=True, store=None, raw_rsdf=None, valid_data=None,
+                                                       alarm_data=None, counters=None)
+            tr_address = ('localhost', 6000)
+            tr_conn = getClientConn(tr_address)
+            if tr_conn is not None:
+                    # Send the state and close
+                    tr_conn.send(state)
+                    tr_conn.close()
+
+
+            
 
 
 if __name__ == "__main__":

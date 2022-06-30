@@ -76,46 +76,77 @@ class StateReceiver(QWidget):
 
 
     def evt_new_state(self, state):
-        print("newState")
         print(state)
         self.receivedState.emit(state)
 
-        # Extract Values
-        latest_record = state.store.records[0]
-        valid_data = state.valid_data
-        alarm_data = state.alarm_data
-        counters = state.counters
+        # Set Defaults
+        x = 0
+        y = 0
+        z = 0
+        proj_x = 0
+        proj_y = 0
+        course = 0
 
-        x = latest_record.position.x
-        y = latest_record.position.y
-        z = latest_record.position.z
-        proj_x = latest_record.proj_position.x
-        proj_y = latest_record.proj_position.y
-        course = latest_record.heading
+        tp_course = 0
 
-        tp_course = course-11.3
-        if tp_course < 0:
-            tp_course += 360
+        speed = 0
 
-        speed = latest_record.knots
+        valid_track_pts = 0
+        no_sub_count = 0
+        alert_count = 0
+        depth_violations = 0
 
-        valid_track_pts = counters["total_valid_track"]
-        no_sub_count = counters["total_no_sub"]
-        alert_count = counters["total_alert"]
-        depth_violations = counters["depth_violations"]
+        x_ok = False
+        y_ok = False
+        z_ok = False
+        speed_ok = False
 
-        x_ok = valid_data["x"]
-        y_ok = valid_data["y"]
-        z_ok = valid_data["z"]
-        speed_ok = valid_data["speed"]
+        valid_consec = False
+        sub_in = False
+        proj_pos_good = False
+        sub_pos_good = False
+        send_warn = False
+        alarm_enable = False
+        alarm_on = False
 
-        valid_consec = alarm_data["5_valid"]
-        sub_in = alarm_data["sub_in"]
-        proj_pos_good = alarm_data["proj_pos_good"]
-        sub_pos_good = alarm_data["sub_pos_good"]
-        send_warn = alarm_data["send_warn"]
-        alarm_enable = alarm_data["alarm_enable"]
-        alarm_on = alarm_data["alarm_on"]
+        if not state.reset:
+             # Extract Values
+            latest_record = state.store.records[0]
+            valid_data = state.valid_data
+            alarm_data = state.alarm_data
+            counters = state.counters
+
+            x = latest_record.position.x
+            y = latest_record.position.y
+            z = latest_record.position.z
+            proj_x = latest_record.proj_position.x
+            proj_y = latest_record.proj_position.y
+            course = latest_record.heading
+
+            tp_course = course-11.3
+            if tp_course < 0:
+                tp_course += 360
+
+            speed = latest_record.knots
+
+            valid_track_pts = counters["total_valid_track"]
+            no_sub_count = counters["total_no_sub"]
+            alert_count = counters["total_alert"]
+            depth_violations = counters["depth_violations"]
+
+            x_ok = valid_data["x"]
+            y_ok = valid_data["y"]
+            z_ok = valid_data["z"]
+            speed_ok = valid_data["speed"]
+
+            valid_consec = alarm_data["5_valid"]
+            sub_in = alarm_data["sub_in"]
+            proj_pos_good = alarm_data["proj_pos_good"]
+            sub_pos_good = alarm_data["sub_pos_good"]
+            send_warn = alarm_data["send_warn"]
+            alarm_enable = alarm_data["alarm_enable"]
+            alarm_on = alarm_data["alarm_on"]
+
 
         # Emit Values
         self.set_x.emit(x)
