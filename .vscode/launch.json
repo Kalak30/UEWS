@@ -26,7 +26,7 @@
             "name": "Tracking GUI PyQt5",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/Tracking_UI/Ui_Tracker UI.py",
+            "program": "${workspaceFolder}/src/Tracking_UI/tracking_gui.py",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/src/",
             "justMyCode": true
