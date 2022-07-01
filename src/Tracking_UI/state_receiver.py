@@ -1,11 +1,10 @@
 
+import socket
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
-import socket
 import proto_src.state_pb2 as StatePB
-import logging
 
 
 class ReceiverThread(QThread):
