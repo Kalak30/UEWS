@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package UEWS;
+
+message GUI_State{
+    bool auto_alarm = 1;
+    bool new_inhibit = 2;
+    bool manual_pressed = 3;
+}

@@ -1,0 +1,27 @@
+
+[default]
+# Connection 
+# 
+server_ip = "localhost"
+server_port = 6000
+gui_servicer_port = 6001
+
+rco_gui_ip = "localhost"
+rco_gui_port = 7000
+rso_gui_ip = "localhost"
+rso_gui_port = 8000
+
+
+
+# TSPI record and store
+tspi_ttl = 20
+
+# Alerts
+projection_time_offset = 5
+invalid_data_max_count = 5
+depth_violation_max_count = 5
+proj_pos_violation_max_count = 2
+
+no_sub_alert_time = 39
+no_output_alert_time = 10
+between_time_max = 2.1

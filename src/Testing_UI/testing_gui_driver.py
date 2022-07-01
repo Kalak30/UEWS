@@ -1,22 +1,23 @@
 """ Starts and configures the Testing GUI application for UEWS
     Spawns an additional thread to handle UDP connection to UEWS Backend
 """
-
 import os
 import socket
 import sys
 import time
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow
+from dynaconf import settings
+
+# Add src to path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.dirname(current_dir))
 
 import proto_src.rsdf_pb2 as RsdfPB
 from generated_ui.testing_ui import Ui_TestingServer
 
-
-
-
-
 SENDER_THREAD = None
+BACKEND_DATA_ADDR = ('localhost', settings.SERVER_PORT)
 
 class SenderThread(QThread):
     """ A thread to send messages to the UEWS Backend
@@ -73,7 +74,7 @@ class SenderThread(QThread):
                         protobuf.raw_rsdf = total_message
                         protobuf.time_dilation = self.time_d
                         protobuf.reset = self.reset_graph
-                        sock.sendto(protobuf.SerializeToString(), ('localhost', 6545))
+                        sock.sendto(protobuf.SerializeToString(), BACKEND_DATA_ADDR)
                         self.msg_sent.emit(total_message)
                         total_message = ""
                         time.sleep(2* self.time_d)
@@ -83,7 +84,7 @@ def start_sending_thread(main_ui: Ui_TestingServer):
     """ Starts a thread that opens a file at a default path
         Connects signals from the ui to vital parts of the thread.
     """
-    test_path = os.path.join("../../test_data/projection_test.txt")
+    test_path = os.path.join(current_dir, "../../test_data/projection_test.txt")
     main_ui.selected_file.setText(test_path)
 
     thread = SenderThread()
@@ -99,7 +100,7 @@ def init_file_dialog(main_ui: Ui_TestingServer):
         A nested function is created to allow it to be called by a signal event.
         Connects to nested function to a signal event
     """
-    def openFile():
+    def open_file():
         """ Creates a file dialog widget that opens a file.
             Changes the text box on the main ui describing the file chosen as well as chaning the
             test file of the sender thread if it is available.
@@ -113,7 +114,7 @@ def init_file_dialog(main_ui: Ui_TestingServer):
             if SENDER_THREAD:
                 SENDER_THREAD.set_test_file(test_path)
 
-    main_ui.OpenFileButton.clicked.connect(openFile)
+    main_ui.OpenFileButton.clicked.connect(open_file)
 
 if __name__ == "__main__":
 
