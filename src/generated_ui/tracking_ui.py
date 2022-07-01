@@ -292,6 +292,7 @@ class Ui_UEWS_Tracking_GUI(object):
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.AutoAlarmToggle = QtWidgets.QPushButton(self.tab)
+        self.AutoAlarmToggle.setAutoDefault(True)
         self.AutoAlarmToggle.setObjectName("AutoAlarmToggle")
         self.verticalLayout_2.addWidget(self.AutoAlarmToggle)
         self.AlarmInhibitor = QtWidgets.QPushButton(self.tab)
@@ -440,6 +441,9 @@ class Ui_UEWS_Tracking_GUI(object):
         self.StateReceiver.set_no_sub_data['int'].connect(self.no_sub_data_val.display)
         self.StateReceiver.set_alert_count['int'].connect(self.alert_count_val.display)
         self.StateReceiver.set_depth_violations['int'].connect(self.depth_violations_val.display)
+        self.AutoAlarmToggle.toggled['bool'].connect(self.StateReceiver.auto_alarm)
+        self.ManualOverride.clicked['bool'].connect(self.StateReceiver.manual_pressed)
+        self.AlarmInhibitor.clicked['bool'].connect(self.StateReceiver.new_inhibit)
         QtCore.QMetaObject.connectSlotsByName(UEWS_Tracking_GUI)
 
     def retranslateUi(self, UEWS_Tracking_GUI):
