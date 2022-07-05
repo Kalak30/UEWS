@@ -42,4 +42,8 @@ message State{
     optional bool reset = 32; 
     string raw_rsdf = 15;
     TSPIStore store = 16;
+
+    int32 seconds_alarm = 17;
+    bool auto_alart = 18;
+    bool manual_alarm = 19;
 }
