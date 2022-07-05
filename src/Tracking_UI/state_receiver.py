@@ -4,6 +4,7 @@ import time
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QWidget
 from dynaconf import settings
+from google.protobuf.text_format import MessageToString
 
 import proto_src.state_pb2 as StatePB
 import proto_src.gui_state_pb2 as GStatePB
@@ -49,9 +50,39 @@ class ReceiverThread(QThread):
         sock = BACKEND_RECV_SOCKET
         sock.bind(LISTENING_SOCKET_ADDR)
         state = StatePB.State()
+        prev_recv = StatePB.State()
         while True:
             data, _ = sock.recvfrom(self.max_buff_size)
             state.ParseFromString(data)
+            self.emit_signal(state, prev_recv)
+            # Simply assigning state to prev_recv is bad as it is a reference,
+            prev_recv.ParseFromString(data)
+
+            
+        
+
+    def emit_signal(self, state, prev_recv):
+        """ Checks if there is duplicate data, emits if there is"""
+
+        if prev_recv is None or state.reset is True:
+            self.new_state.emit(state)
+            return
+
+        # Completely the same, no need to emit signals
+        if MessageToString(prev_recv) == MessageToString(state):
+            return
+
+        if len(state.store.records) == 0 or len(prev_recv.store.records) == 0:
+            return
+
+        new_record = state.store.records[0]
+        old_record = prev_recv.store.records[0]
+        
+        
+        # Only update graph on change in position
+        if old_record.x != new_record.x or old_record.y != new_record.y or \
+            old_record.proj_x != new_record.proj_x or \
+            old_record.proj_y != new_record.proj_y:
             self.new_state.emit(state)
 
 
@@ -112,8 +143,11 @@ class StateReceiver(QWidget):
 
     def evt_new_state(self, state):
         """ Extract values from received event and emits signals to the rest of the gui"""
-
         self.receivedState.emit(state)
+
+        if len(state.store.records) == 0:
+            return
+        
         latest_record = state.store.records[0]
 
         # Emit Values

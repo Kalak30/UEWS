@@ -64,7 +64,7 @@ class SenderThread(QThread):
             with open(self.test_path, encoding='utf-8') as f:
                 total_message = ""
                 sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-                while not self.reset_graph:
+                while True:
                     line = f.readline()
                     if not line:
                         break
@@ -77,6 +77,10 @@ class SenderThread(QThread):
                         sock.sendto(protobuf.SerializeToString(), BACKEND_DATA_ADDR)
                         self.msg_sent.emit(total_message)
                         total_message = ""
+
+                        if self.reset_graph is True:
+                            break
+                        
                         time.sleep(2* self.time_d)
 
 # Must return the sender thread and maintain reference so it does not get garbage collected

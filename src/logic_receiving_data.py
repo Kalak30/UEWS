@@ -85,7 +85,7 @@ def update_state(state_msg, store: TSPIStore, msg:RsdfPB.RSDF,
                                 validation["valid_y"],
                                 validation["valid_z"],
                                 validation["valid_speed"]
-                                )                 
+                                )
         state_msg.set_store(store)
         state_msg.set_toggle_values(enough_valid=ap_state["consec_valid"]==0,
                                     sub_in=good_positions["current"],
@@ -159,7 +159,7 @@ def main():
         # Create and send state to GUI client
         ap_state = alert_p.get_alarm_state()
         update_state(state_msg, store, msg, validation, ap_state, good_positions)
-        new_record.print_values()
+        #new_record.print_values()
 
 if __name__ == "__main__":
     main()

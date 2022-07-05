@@ -1,3 +1,6 @@
+""" Helper functions and definitions to aid in connecting with other vital UEWS processes"""
+
+# TODO: Turn this into a connection class
 import socket
 import threading
 from dynaconf import settings
@@ -28,7 +31,7 @@ def send_reset(gui_socket_addr, gui_socket: socket.socket, state_msg: state_mess
     with state_lock:
         state_msg.clear()
         state_msg.set_reset(True)
-        gui_socket.sendto(gui_socket_addr)
+        gui_socket.sendto(state_msg.serialize_to_string(), gui_socket_addr)
 
 
 def await_gui_request(gui_socket: socket.socket, state_msg: state_message.StateMessage):
@@ -43,7 +46,6 @@ def send_state(socket_addr, gui_socket: socket.socket, state_msg: state_message.
         middle of transmission
     """
     with state_lock:
-        
         gui_socket.sendto(state_msg.serialize_to_string(), socket_addr)
 
 def receive_from_server(server_socket: socket.socket):
