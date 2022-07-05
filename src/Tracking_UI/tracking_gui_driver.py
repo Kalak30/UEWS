@@ -8,6 +8,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(current_dir))
 
 from generated_ui.tracking_ui import Ui_UEWS_Tracking_GUI
+import tracking_graph
 
 
 
@@ -35,6 +36,10 @@ if __name__ == "__main__":
     ui.alarm_enable_indicator.setOffColour(QLed.Grey)
     ui.alarm_on_indicator.setOnColour(QLed.Red)
     ui.alarm_on_indicator.setOffColour(QLed.Grey)
+
+    tracking_graph = tracking_graph.TrackingGraph(ui.TrackingGraph)
+
+    ui.StateReceiver.receivedState.connect(tracking_graph.new_state)
 
     UEWS_Tracking_GUI.show()
     sys.exit(app.exec_())

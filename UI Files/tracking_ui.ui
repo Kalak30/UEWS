@@ -20,7 +20,7 @@
    <enum>QTabWidget::Rounded</enum>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,4,7">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,4,8">
     <item>
      <widget class="StateReceiver" name="StateReceiver" native="true">
       <property name="minimumSize">
@@ -837,7 +837,7 @@
      </widget>
     </item>
     <item>
-     <widget class="Canvas" name="TrackingCanvas" native="true"/>
+     <widget class="PlotWidget" name="TrackingGraph"/>
     </item>
    </layout>
   </widget>
@@ -863,15 +863,6 @@
     <slot>setValue(bool)</slot>
     <slot>setOnColour(int)</slot>
     <slot>setOffColour(int)</slot>
-   </slots>
-  </customwidget>
-  <customwidget>
-   <class>Canvas</class>
-   <extends>QWidget</extends>
-   <header>tracking_grid</header>
-   <container>1</container>
-   <slots>
-    <slot>new_state()</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -912,25 +903,14 @@
     <slot>manual_pressed(bool)</slot>
    </slots>
   </customwidget>
+  <customwidget>
+   <class>PlotWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>pyqtgraph</header>
+  </customwidget>
  </customwidgets>
  <resources/>
  <connections>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>receivedState()</signal>
-   <receiver>TrackingCanvas</receiver>
-   <slot>new_state()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>11</x>
-     <y>565</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>StateReceiver</sender>
    <signal>set_x(int)</signal>
