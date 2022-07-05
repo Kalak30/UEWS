@@ -658,8 +658,17 @@ background-color: rgb(227, 227, 227);
              <property name="text">
               <string>AUTO</string>
              </property>
-             <property name="autoDefault">
+             <property name="checkable">
               <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+             <property name="autoDefault">
+              <bool>false</bool>
+             </property>
+             <property name="default">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -675,7 +684,7 @@ background-color: rgb(227, 227, 227);
               <string/>
              </property>
              <property name="checkable">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="autoDefault">
               <bool>false</bool>
@@ -976,7 +985,7 @@ background-color: rgb(227, 227, 227);
     <signal>set_off_colour(int)</signal>
     <slot>run()</slot>
     <slot>auto_alarm(bool)</slot>
-    <slot>new_inhibit(bool)</slot>
+    <slot>new_inhibit()</slot>
     <slot>manual_pressed(bool)</slot>
    </slots>
   </customwidget>
@@ -1342,9 +1351,9 @@ background-color: rgb(227, 227, 227);
   </connection>
   <connection>
    <sender>AlarmInhibitor</sender>
-   <signal>clicked(bool)</signal>
+   <signal>clicked()</signal>
    <receiver>StateReceiver</receiver>
-   <slot>new_inhibit(bool)</slot>
+   <slot>new_inhibit()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>1072</x>
@@ -1352,7 +1361,7 @@ background-color: rgb(227, 227, 227);
     </hint>
     <hint type="destinationlabel">
      <x>8</x>
-     <y>29</y>
+     <y>34</y>
     </hint>
    </hints>
   </connection>

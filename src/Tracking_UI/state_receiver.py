@@ -48,9 +48,7 @@ class SendingThread(QThread):
         """ Sends a message to backend indicating that gui control has changed"""
         be_socket = LOCAL_SEND
         be_socket.sendto(self.gui_state.SerializeToString(), BACK_CONTROL_RECV)
-        self.gui_state.clear()
-
-
+        self.gui_state.Clear()
 
 
 class ReceiverThread(QThread):
@@ -202,9 +200,9 @@ class StateReceiver(QWidget):
         """ Updates the auto_alarm value in the GUI state protobuf"""
         self.sender_thread.auto_alarm(auto_alarm)
 
-    def new_inhibit(self, new_inhibit):
+    def new_inhibit(self):
         """ Sets the new_inhibit alarm value in the GUI state protobuf"""
-        self.sender_thread.new_inhibit(new_inhibit)
+        self.sender_thread.new_inhibit(True)
 
     def manual_pressed(self, manual_pressed):
         """ Sets whether the manual override button has been pressed in the last cycle"""
