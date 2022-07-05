@@ -103,6 +103,9 @@ def gui_control_callback(data):
     """ A callback for the GUI connection to handle gui_control messages"""
     gui_control = GStatePB.GUI_State()
     gui_control.ParseFromString(data)
+    #AP.update(gui_control)
+    #if hasattr(gui_control, "new_inhibit"):
+    # then update new_inhibit
     print(gui_control)
     return gui_control
 
