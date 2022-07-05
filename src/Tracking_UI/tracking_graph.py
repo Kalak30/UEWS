@@ -41,17 +41,17 @@ class TrackingGraph():
         self.plot_widget.invertY(True)
         self.plot_widget.showGrid(x=True, y=True)
 
+        # Could make this changable via a button on GUI to allow for graph navigation. Could be cool
+        # but not needed
+        self.plot_widget.setMouseEnabled(x=False, y=False)
+
         self.plot_widget.setXRange(0, self.graph_width)
         self.plot_widget.setYRange(0, self.graph_height)
-
-        # 0 - 255 value for alpha value
-        grid_opacity = 156
 
         grid_color = "#0080ff"
 
         x_axis = self.plot_widget.getAxis('bottom')
         x_axis.setStyle(textFillLimits=[(0,0.6), (4, 0.4)])
-        #x_axis.setGrid(grid_opacity)
         x_axis.setPen(color= grid_color)
         x_axis.setTickSpacing(major=500, minor=50)
         x_axis.setLabel(text="X (feet)")
@@ -60,7 +60,6 @@ class TrackingGraph():
 
         y_axis = self.plot_widget.getAxis('left')
         y_axis.setStyle(textFillLimits=[(0,0.6), (4, 0.4)])
-        #y_axis.setGrid(grid_opacity)
         y_axis.setPen(color=grid_color)
         y_axis.setTickSpacing(major=200, minor=50)
         y_axis.setLabel(text="Y (feet)")
