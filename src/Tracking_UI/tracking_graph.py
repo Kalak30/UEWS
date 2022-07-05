@@ -13,7 +13,7 @@ class TrackingGraph():
     def __init__(self, plot_widget):
         self.plot_widget = plot_widget
         self.positions = np.zeros(shape=(1,2))
-        self.proj_positions = self.positions
+        self.proj_positions = np.zeros(shape=(1,2))
 
         self.graph_height=3000
         self.graph_width=4000
@@ -130,7 +130,7 @@ class TrackingGraph():
         else:
             print("reset")
             self.positions = np.zeros((1,2))
-            self.proj_positions = self.positions
+            self.proj_positions = np.zeros((1,2))
             self.reset_positions = True
 
         # Setting View
