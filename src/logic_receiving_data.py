@@ -4,14 +4,13 @@
 
 import logging
 import logging.config
-import threading
 from os import path
 from dynaconf import settings
 
 
 import proto_src.rsdf_pb2 as RsdfPB
 import statics
-from connection_handle import *
+from connection_handle import ConnectionHandler, state_lock
 import rsdf_parse
 import bounds_check
 from tspi import TSPIRecord, TSPIStore
@@ -23,9 +22,6 @@ import state_message
 logging.config.fileConfig(path.join(path.dirname(path.abspath('')), statics.LOGGER_CONFIG_PATH))
 logger = logging.getLogger(__name__)
 
-GUI_SOCKET = socket.socket(family=socket.AF_INET, type = socket.SOCK_DGRAM)
-GUI_SERVICER_SOCKET = socket.socket(family=socket.AF_INET, type = socket.SOCK_DGRAM)
-SERVER_SOCKET = socket.socket(family=socket.AF_INET, type = socket.SOCK_DGRAM)
 
 def do_validation(new_record: TSPIRecord):
     """ Does validation process and returns a tuple of 4 bools
@@ -105,23 +101,18 @@ def main():
     alert_p = alert_processor.AlertProcessor()
     state_msg = state_message.StateMessage()
 
-    setup_sockets(SERVER_SOCKET, GUI_SERVICER_SOCKET)
-
-    gui_handler = threading.Thread(target=await_gui_request, name="RCO_GUI_REQUEST_HANDLER",
-                     args=(GUI_SERVICER_SOCKET, state_msg))
-
-    gui_handler.start()
+    connection_handle = ConnectionHandler(state_msg=state_msg)
 
     #create tspi store with specified time to live (ttl)
     store = tspi.TSPIStore(ttl=settings.TSPI_TTL)
 
     while True:
         msg = RsdfPB.RSDF()
-        data = receive_from_server(SERVER_SOCKET)
+        data = connection_handle.server_conn.recv()
         msg.ParseFromString(data)
 
         if msg.reset:
-            send_reset(GUI_SOCKET_ADDRESS, GUI_SOCKET, state_msg)
+            connection_handle.gui_conn.send_reset(state_msg=state_msg)
 
         # parse raw rsdf from server
         new_record = rsdf_parse.parse_data(msg.raw_rsdf)

@@ -11,33 +11,44 @@ import proto_src.gui_state_pb2 as GStatePB
 
 # TODO: Make address configurable
 LISTENING_SOCKET_ADDR = ('127.0.0.1', settings.RCO_GUI_PORT)
-BACKEND_SOCKET_ADDR = ('127.0.0.1', settings.GUI_SERVICER_PORT)
-BACKEND_RECV_SOCKET =  socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-BACKEND_SEND_SOCKET = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+BACK_STATE_RECV = ('127.0.0.1', settings.GUI_SERVICER_PORT)
+BACK_CONTROL_RECV = ('127.0.0.1', 9000)
+
+LOCAL_RECV =  socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+LOCAL_SEND = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
 class SendingThread(QThread):
     """ Thread to send messages to the backend requesting updates"""
-    gstate_pb = GStatePB.GUI_State()
+    state_req = GStatePB.StateRequest()
+    gui_state = GStatePB.GUI_State()
 
     def auto_alarm(self, auto_alarm):
         """ Updates the auto_alarm value in the GUI state protobuf"""
-        self.gstate_pb.auto_alarm = auto_alarm
+        self.gui_state.auto_alarm = auto_alarm
+        self.send_control_update()
 
     def new_inhibit(self, new_inhibit):
         """ Sets the new_inhibit alarm value in the GUI state protobuf"""
-        self.gstate_pb.new_inhibit = new_inhibit
+        self.gui_state.new_inhibit = new_inhibit
+        self.send_control_update()
 
     def manual_pressed(self, manual_pressed):
         """ Sets whether the manual override button has been pressed in the last cycle"""
-        self.gstate_pb.manual_pressed = manual_pressed
+        self.gui_state.manual_pressed = manual_pressed
+        self.send_control_update()
 
     def run(self):
         """ Continually sends to the backend"""
-        be_socket = BACKEND_SEND_SOCKET
+        be_socket = LOCAL_SEND
         while True:
-            be_socket.sendto(self.gstate_pb.SerializeToString(), BACKEND_SOCKET_ADDR)
+            be_socket.sendto(self.state_req.SerializeToString(), BACK_STATE_RECV)
             time.sleep(0.1)
 
+    def send_control_update(self):
+        """ Sends a message to backend indicating that gui control has changed"""
+        be_socket = LOCAL_SEND
+        be_socket.sendto(self.gui_state.SerializeToString(), BACK_CONTROL_RECV)
+        self.gui_state.Clear()
 
 
 class ReceiverThread(QThread):
@@ -47,7 +58,7 @@ class ReceiverThread(QThread):
 
     def run(self):
         """ Connects to the backend and emits a new_state notice"""
-        sock = BACKEND_RECV_SOCKET
+        sock = LOCAL_RECV
         sock.bind(LISTENING_SOCKET_ADDR)
         state = StatePB.State()
         prev_recv = StatePB.State()
@@ -189,9 +200,9 @@ class StateReceiver(QWidget):
         """ Updates the auto_alarm value in the GUI state protobuf"""
         self.sender_thread.auto_alarm(auto_alarm)
 
-    def new_inhibit(self, new_inhibit):
+    def new_inhibit(self):
         """ Sets the new_inhibit alarm value in the GUI state protobuf"""
-        self.sender_thread.new_inhibit(new_inhibit)
+        self.sender_thread.new_inhibit(True)
 
     def manual_pressed(self, manual_pressed):
         """ Sets whether the manual override button has been pressed in the last cycle"""

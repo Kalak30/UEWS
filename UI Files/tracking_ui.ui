@@ -658,8 +658,17 @@ background-color: rgb(227, 227, 227);
              <property name="text">
               <string>AUTO</string>
              </property>
-             <property name="autoDefault">
+             <property name="checkable">
               <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+             <property name="autoDefault">
+              <bool>false</bool>
+             </property>
+             <property name="default">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -675,7 +684,7 @@ background-color: rgb(227, 227, 227);
               <string/>
              </property>
              <property name="checkable">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="autoDefault">
               <bool>false</bool>
@@ -945,7 +954,7 @@ background-color: rgb(227, 227, 227);
   <customwidget>
    <class>StateReceiver</class>
    <extends>QWidget</extends>
-   <header>state_receiver</header>
+   <header>Tracking_UI.state_receiver</header>
    <container>1</container>
    <slots>
     <signal>receivedState()</signal>
@@ -976,7 +985,7 @@ background-color: rgb(227, 227, 227);
     <signal>set_off_colour(int)</signal>
     <slot>run()</slot>
     <slot>auto_alarm(bool)</slot>
-    <slot>new_inhibit(bool)</slot>
+    <slot>new_inhibit()</slot>
     <slot>manual_pressed(bool)</slot>
    </slots>
   </customwidget>
@@ -990,8 +999,40 @@ background-color: rgb(227, 227, 227);
  <connections>
   <connection>
    <sender>StateReceiver</sender>
-   <signal>set_x(int)</signal>
-   <receiver>x_val</receiver>
+   <signal>set_proj_pos_good(bool)</signal>
+   <receiver>proj_pos_good_indicator</receiver>
+   <slot>setValue(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>456</x>
+     <y>174</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>StateReceiver</sender>
+   <signal>set_alarm_on(bool)</signal>
+   <receiver>alarm_on_indicator</receiver>
+   <slot>setValue(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>628</x>
+     <y>180</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>StateReceiver</sender>
+   <signal>set_tp_course(int)</signal>
+   <receiver>tp_course_val</receiver>
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -999,8 +1040,88 @@ background-color: rgb(227, 227, 227);
      <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>248</x>
+     <x>115</x>
+     <y>242</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>StateReceiver</sender>
+   <signal>set_course(int)</signal>
+   <receiver>course_val</receiver>
+   <slot>display(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>115</x>
+     <y>193</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>StateReceiver</sender>
+   <signal>set_alarm_enable(bool)</signal>
+   <receiver>alarm_enable_indicator</receiver>
+   <slot>setValue(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>629</x>
+     <y>125</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>StateReceiver</sender>
+   <signal>set_z_ok(bool)</signal>
+   <receiver>z_ok_indicator</receiver>
+   <slot>setValue(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>295</x>
+     <y>187</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>StateReceiver</sender>
+   <signal>set_proj_x(int)</signal>
+   <receiver>proj_x_val</receiver>
+   <slot>display(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>115</x>
      <y>106</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>StateReceiver</sender>
+   <signal>set_off_colour(int)</signal>
+   <receiver>speed_ok_indicator</receiver>
+   <slot>setOffColour(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>295</x>
+     <y>230</y>
     </hint>
    </hints>
   </connection>
@@ -1016,6 +1137,70 @@ background-color: rgb(227, 227, 227);
     </hint>
     <hint type="destinationlabel">
      <x>248</x>
+     <y>145</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>StateReceiver</sender>
+   <signal>set_sub_in_bounds(bool)</signal>
+   <receiver>sub_in_indicator</receiver>
+   <slot>setValue(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>461</x>
+     <y>133</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ManualOverride</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>StateReceiver</receiver>
+   <slot>manual_pressed(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1072</x>
+     <y>215</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AutoAlarmToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>StateReceiver</receiver>
+   <slot>auto_alarm(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1072</x>
+     <y>105</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>StateReceiver</sender>
+   <signal>set_proj_y(int)</signal>
+   <receiver>proj_y_val</receiver>
+   <slot>display(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>115</x>
      <y>145</y>
     </hint>
    </hints>
@@ -1038,182 +1223,6 @@ background-color: rgb(227, 227, 227);
   </connection>
   <connection>
    <sender>StateReceiver</sender>
-   <signal>set_proj_x(int)</signal>
-   <receiver>proj_x_val</receiver>
-   <slot>display(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>115</x>
-     <y>106</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>set_proj_y(int)</signal>
-   <receiver>proj_y_val</receiver>
-   <slot>display(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>115</x>
-     <y>145</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>set_course(int)</signal>
-   <receiver>course_val</receiver>
-   <slot>display(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>115</x>
-     <y>193</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>set_tp_course(int)</signal>
-   <receiver>tp_course_val</receiver>
-   <slot>display(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>115</x>
-     <y>242</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>set_sub_in_bounds(bool)</signal>
-   <receiver>sub_in_indicator</receiver>
-   <slot>setValue(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>461</x>
-     <y>133</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>set_speed(int)</signal>
-   <receiver>speed_val</receiver>
-   <slot>display(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>248</x>
-     <y>230</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>set_on_colour(int)</signal>
-   <receiver>speed_ok_indicator</receiver>
-   <slot>setOnColour(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>295</x>
-     <y>230</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>set_off_colour(int)</signal>
-   <receiver>speed_ok_indicator</receiver>
-   <slot>setOffColour(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>295</x>
-     <y>230</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>set_x_ok(bool)</signal>
-   <receiver>x_ok_indicator</receiver>
-   <slot>setValue(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>298</x>
-     <y>91</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>set_y_ok(bool)</signal>
-   <receiver>y_ok_indicator</receiver>
-   <slot>setValue(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>293</x>
-     <y>138</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>set_z_ok(bool)</signal>
-   <receiver>z_ok_indicator</receiver>
-   <slot>setValue(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>295</x>
-     <y>187</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
    <signal>set_valid_consec_track(bool)</signal>
    <receiver>valid_trk_pts_indicator</receiver>
    <slot>setValue(bool)</slot>
@@ -1230,88 +1239,8 @@ background-color: rgb(227, 227, 227);
   </connection>
   <connection>
    <sender>StateReceiver</sender>
-   <signal>set_proj_pos_good(bool)</signal>
-   <receiver>proj_pos_good_indicator</receiver>
-   <slot>setValue(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>456</x>
-     <y>174</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>set_sub_pos_good(bool)</signal>
-   <receiver>sub_pos_good_indicator</receiver>
-   <slot>setValue(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>461</x>
-     <y>221</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>set_send_warn_tones(bool)</signal>
-   <receiver>send_warn_tones_indicator</receiver>
-   <slot>setValue(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>632</x>
-     <y>84</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>set_alarm_enable(bool)</signal>
-   <receiver>alarm_enable_indicator</receiver>
-   <slot>setValue(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>629</x>
-     <y>125</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>set_alarm_on(bool)</signal>
-   <receiver>alarm_on_indicator</receiver>
-   <slot>setValue(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>8</x>
-     <y>29</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>628</x>
-     <y>180</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>set_valid_track_pts(int)</signal>
-   <receiver>valid_track_pts_val</receiver>
+   <signal>set_x(int)</signal>
+   <receiver>x_val</receiver>
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1319,8 +1248,8 @@ background-color: rgb(227, 227, 227);
      <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>926</x>
-     <y>87</y>
+     <x>248</x>
+     <y>106</y>
     </hint>
    </hints>
   </connection>
@@ -1358,57 +1287,73 @@ background-color: rgb(227, 227, 227);
   </connection>
   <connection>
    <sender>StateReceiver</sender>
-   <signal>receivedState()</signal>
-   <receiver>TrackingCanvas</receiver>
-   <slot>new_state()</slot>
+   <signal>set_send_warn_tones(bool)</signal>
+   <receiver>send_warn_tones_indicator</receiver>
+   <slot>setValue(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>8</x>
      <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>11</x>
-     <y>565</y>
+     <x>632</x>
+     <y>84</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>AutoAlarmToggle</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>StateReceiver</receiver>
-   <slot>auto_alarm(bool)</slot>
+   <sender>StateReceiver</sender>
+   <signal>set_y_ok(bool)</signal>
+   <receiver>y_ok_indicator</receiver>
+   <slot>setValue(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1072</x>
-     <y>105</y>
-    </hint>
-    <hint type="destinationlabel">
      <x>8</x>
      <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>293</x>
+     <y>138</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>ManualOverride</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>StateReceiver</receiver>
-   <slot>manual_pressed(bool)</slot>
+   <sender>StateReceiver</sender>
+   <signal>set_sub_pos_good(bool)</signal>
+   <receiver>sub_pos_good_indicator</receiver>
+   <slot>setValue(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1072</x>
-     <y>215</y>
-    </hint>
-    <hint type="destinationlabel">
      <x>8</x>
      <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>461</x>
+     <y>221</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>StateReceiver</sender>
+   <signal>set_x_ok(bool)</signal>
+   <receiver>x_ok_indicator</receiver>
+   <slot>setValue(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>298</x>
+     <y>91</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>AlarmInhibitor</sender>
-   <signal>clicked(bool)</signal>
+   <signal>clicked()</signal>
    <receiver>StateReceiver</receiver>
-   <slot>new_inhibit(bool)</slot>
+   <slot>new_inhibit()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>1072</x>
@@ -1416,7 +1361,55 @@ background-color: rgb(227, 227, 227);
     </hint>
     <hint type="destinationlabel">
      <x>8</x>
+     <y>34</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>StateReceiver</sender>
+   <signal>set_valid_track_pts(int)</signal>
+   <receiver>valid_track_pts_val</receiver>
+   <slot>display(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>8</x>
      <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>926</x>
+     <y>87</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>StateReceiver</sender>
+   <signal>set_speed(int)</signal>
+   <receiver>speed_val</receiver>
+   <slot>display(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>248</x>
+     <y>230</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>StateReceiver</sender>
+   <signal>set_on_colour(int)</signal>
+   <receiver>speed_ok_indicator</receiver>
+   <slot>setOnColour(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>295</x>
+     <y>230</y>
     </hint>
    </hints>
   </connection>
