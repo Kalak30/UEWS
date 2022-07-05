@@ -11,7 +11,11 @@
         "/../src"
     ],
     "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "python.linting.mypyEnabled": false,
+    "python.analysis.extraPaths": [
+        "/../src"
+    ]
     
     
 }
