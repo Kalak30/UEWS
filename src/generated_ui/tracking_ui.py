@@ -292,6 +292,7 @@ class Ui_UEWS_Tracking_GUI(object):
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.AutoAlarmToggle = QtWidgets.QPushButton(self.tab)
+        self.AutoAlarmToggle.setAutoDefault(True)
         self.AutoAlarmToggle.setObjectName("AutoAlarmToggle")
         self.verticalLayout_2.addWidget(self.AutoAlarmToggle)
         self.AlarmInhibitor = QtWidgets.QPushButton(self.tab)
@@ -399,11 +400,11 @@ class Ui_UEWS_Tracking_GUI(object):
         self.horizontalLayout_2.setStretch(2, 2)
         self.tabWidget.addTab(self.tab_2, "")
         self.verticalLayout.addWidget(self.tabWidget)
-        self.TrackingCanvas = Canvas(self.centralwidget)
-        self.TrackingCanvas.setObjectName("TrackingCanvas")
-        self.verticalLayout.addWidget(self.TrackingCanvas)
+        self.TrackingGraph = PlotWidget(self.centralwidget)
+        self.TrackingGraph.setObjectName("TrackingGraph")
+        self.verticalLayout.addWidget(self.TrackingGraph)
         self.verticalLayout.setStretch(1, 4)
-        self.verticalLayout.setStretch(2, 7)
+        self.verticalLayout.setStretch(2, 8)
         UEWS_Tracking_GUI.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(UEWS_Tracking_GUI)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1210, 21))
@@ -415,7 +416,6 @@ class Ui_UEWS_Tracking_GUI(object):
 
         self.retranslateUi(UEWS_Tracking_GUI)
         self.tabWidget.setCurrentIndex(0)
-        self.StateReceiver.receivedState.connect(self.TrackingCanvas.new_state)
         self.StateReceiver.set_x['int'].connect(self.x_val.display)
         self.StateReceiver.set_y['int'].connect(self.y_val.display)
         self.StateReceiver.set_z['int'].connect(self.z_val.display)
@@ -440,6 +440,9 @@ class Ui_UEWS_Tracking_GUI(object):
         self.StateReceiver.set_no_sub_data['int'].connect(self.no_sub_data_val.display)
         self.StateReceiver.set_alert_count['int'].connect(self.alert_count_val.display)
         self.StateReceiver.set_depth_violations['int'].connect(self.depth_violations_val.display)
+        self.AutoAlarmToggle.toggled['bool'].connect(self.StateReceiver.auto_alarm)
+        self.ManualOverride.clicked['bool'].connect(self.StateReceiver.manual_pressed)
+        self.AlarmInhibitor.clicked['bool'].connect(self.StateReceiver.new_inhibit)
         QtCore.QMetaObject.connectSlotsByName(UEWS_Tracking_GUI)
 
     def retranslateUi(self, UEWS_Tracking_GUI):
@@ -484,5 +487,5 @@ class Ui_UEWS_Tracking_GUI(object):
         self.IP_address.setText(_translate("UEWS_Tracking_GUI", "IP_address"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("UEWS_Tracking_GUI", "Tab 2"))
 from QLed import QLed
+from pyqtgraph import PlotWidget
 from state_receiver import StateReceiver
-from tracking_grid import Canvas

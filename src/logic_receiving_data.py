@@ -1,117 +1,165 @@
+""" Receives data from server, does calculation and verification, then
+    sends data to GUIs
+"""
 
-import time
-import numpy as np
-
-import socket
+import logging
+import logging.config
+import threading
+from os import path
+from dynaconf import settings
 
 
 import proto_src.rsdf_pb2 as RsdfPB
+import statics
+from connection_handle import *
 import rsdf_parse
 import bounds_check
+from tspi import TSPIRecord, TSPIStore
 import tspi
-from statics import *
-import configurator
 import alert_processor
-import logging
-import bounds_check
 import state_message
 
+
+logging.config.fileConfig(path.join(path.dirname(path.abspath('')), statics.LOGGER_CONFIG_PATH))
 logger = logging.getLogger(__name__)
-max_buff_size = 1024
+
+GUI_SOCKET = socket.socket(family=socket.AF_INET, type = socket.SOCK_DGRAM)
+GUI_SERVICER_SOCKET = socket.socket(family=socket.AF_INET, type = socket.SOCK_DGRAM)
+SERVER_SOCKET = socket.socket(family=socket.AF_INET, type = socket.SOCK_DGRAM)
+
+def do_validation(new_record: TSPIRecord):
+    """ Does validation process and returns a tuple of 4 bools
+        (valid_x, valid_y, valid_z, valid_speed)
+    """
+    valid_x = bounds_check.check_x(new_record.position.x)
+    valid_y = bounds_check.check_y(new_record.position.y)
+    valid_z = bounds_check.check_z(new_record.position.z)
+    valid_speed = bounds_check.check_speed(new_record.knots)
+    return valid_x, valid_y, valid_z, valid_speed
+
+def check_bounds_and_alert(new_record: TSPIRecord, store: TSPIStore,
+                           alert_p: alert_processor.AlertProcessor):
+    """ Checks if the new record is in bounds and if the projected position of that record is 
+        in bounds. Also checks for depth violation of the new record.
+        If there is an issue with any of these, then a signal is sent to the alert processor
+        Returns a dictionary containing whether the current and projected positions are good
+        keys = {"current", "projected"}
+    """
+    custom_proj = False
+    pos_good = True
+    proj_pos_good = True
+    # Check current pos is in
+    if not bounds_check.in_bounds(new_record.position):
+        pos_good = False
+
+    #check depth
+    if bounds_check.check_in_depth(new_record.position.z):
+        alert_p.depth_ok()
+    else:
+        alert_p.depth_violation()
+
+    store.get_prediction(new_record, custom_proj)
+
+    # Check projected pos in
+    if not bounds_check.in_bounds(new_record.proj_position):
+        proj_pos_good = False
+
+
+    if proj_pos_good and pos_good:
+        alert_p.bounds_ok()
+    else:
+        alert_p.bounds_violation()
+
+    return {"current": pos_good, "projected": proj_pos_good}
+
+
+def update_state(state_msg, store: TSPIStore, msg:RsdfPB.RSDF,
+                 validation, ap_state, good_positions):
+    """ Updates the values within the StateMessage object"""
+    with state_lock:
+        state_msg.clear()
+        state_msg.set_reset(msg.reset)
+        state_msg.set_rsdf(msg.raw_rsdf)
+        state_msg.set_valid_data(
+                                validation["valid_x"],
+                                validation["valid_y"],
+                                validation["valid_z"],
+                                validation["valid_speed"]
+                                )
+        state_msg.set_store(store)
+        state_msg.set_toggle_values(enough_valid=ap_state["consec_valid"]==0,
+                                    sub_in=good_positions["current"],
+                                    proj_pos=good_positions["projected"],
+                                    send_warn=False,
+                                    alarm_enable=ap_state["alarm_enable"],
+                                    alarm_on=False)
+        state_msg.set_counters(depth_vio=ap_state["depth_violations"],
+                                total_alerts=ap_state["total_alert"],
+                                no_sub=ap_state["total_no_sub"],
+                                total_valid=ap_state["total_valid_track"]
+                                )
 
 # def setProjPosition(proj_pos, my_speed):
 def main():
-    print("in main")
-    config_args = configurator.get_config()
-    custom_proj = False
-    AP = alert_processor.AlertProcessor()
+    """ Main loop of the backend data processing loop. """
+    alert_p = alert_processor.AlertProcessor()
+    state_msg = state_message.StateMessage()
 
+    setup_sockets(SERVER_SOCKET, GUI_SERVICER_SOCKET)
 
-    # Both connections should end up being closed at some point
-    # server
-    serv_address = ('', 6545)
-    serv_socket = socket.socket(family=socket.AF_INET, type = socket.SOCK_DGRAM)
-    serv_socket.bind(serv_address)
+    gui_handler = threading.Thread(target=await_gui_request, name="RCO_GUI_REQUEST_HANDLER",
+                     args=(GUI_SERVICER_SOCKET, state_msg))
+
+    gui_handler.start()
 
     #create tspi store with specified time to live (ttl)
-    store = tspi.TSPIStore(ttl=7)
+    store = tspi.TSPIStore(ttl=settings.TSPI_TTL)
 
     while True:
-        # received_data(client)
         msg = RsdfPB.RSDF()
-        data, addr = serv_socket.recvfrom(max_buff_size) # Blocking
+        data = receive_from_server(SERVER_SOCKET)
         msg.ParseFromString(data)
-        
 
-        sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-        StateMsg = state_message.StateMessage(reset=True)
         if msg.reset:
-            sock.sendto(StateMsg.SerializeToString(),('localhost', 6000))
-        
-        # parse data
+            send_reset(GUI_SOCKET_ADDRESS, GUI_SOCKET, state_msg)
+
+        # parse raw rsdf from server
         new_record = rsdf_parse.parse_data(msg.raw_rsdf)
 
-        if(new_record == None):
-            AP.recived_noCode11_data()
+        if new_record is None:
+            alert_p.recived_no_code11_data(store.get_newest_record())
             continue
 
         #reset sub timer
-        AP.recived_all_data()
+        alert_p.recived_all_data()
 
         # Validate incoming data
-        valid_x = bounds_check.check_x(new_record.position.x)
-        valid_y = bounds_check.check_y(new_record.position.y)
-        valid_z = bounds_check.check_z(new_record.position.z)
-        valid_speed = bounds_check.check_speed(new_record.knots)
+        valid_x, valid_y, valid_z, valid_speed = do_validation(new_record)
+        validation = {
+                      "valid_x": valid_x,
+                      "valid_y": valid_y,
+                      "valid_z": valid_z,
+                      "valid_speed": valid_speed
+                      }
 
-        if valid_x and valid_y and valid_z and valid_speed:
+        # Get a variable to tell if everything is valid
+        fully_valid = True
+        for value in validation.items():
+            fully_valid &= value[1]
+
+        if fully_valid:
             store.add_record(new_record)
-            AP.valid_data()
+            alert_p.valid_data()
         else:
-            AP.invalid_data()
-            
-        pos_good = True
-        proj_pos_good = True
-        # Check current pos is in
-        if not bounds_check.in_bounds(new_record.position):
-            pos_good = False
-        
-        #check depth
-        if(bounds_check.check_in_depth(new_record.position.z)):
-            AP.depth_ok()
-        else:
-            AP.depth_violation()
+            alert_p.invalid_data()
 
-        store.get_prediction(new_record, custom_proj)
+        good_positions = check_bounds_and_alert(new_record, store, alert_p)
 
-        # Check projected pos in
-        if not bounds_check.in_bounds(new_record.proj_position):
-            proj_pos_good = False
-        
 
-        if proj_pos_good and pos_good:
-            AP.bounds_ok()
-        else:
-            AP.bounds_violation()
-            
-
-            # Create and send state to GUI client
-        ap_state = AP.get_alarm_state()
-
-        StateMsg = state_message.StateMessage(reset=msg.reset, raw_rsdf=msg.raw_rsdf)
-        StateMsg.setValidData(valid_x, valid_y, valid_z, valid_speed)
-        StateMsg.setStore(store)
-        StateMsg.setToggleValues(enough_valid=ap_state["consec_valid"]==0, sub_in=pos_good,
-                                    proj_pos=proj_pos_good, send_warn=False, alarm_enable=ap_state["alarm_enable"],
-                                    alarm_on=False)
-        StateMsg.setCounters(depth_vio=ap_state["depth_violations"], total_alerts=ap_state["total_alert"],
-                                no_sub=ap_state["total_no_sub"], total_valid=ap_state["total_valid_track"])
-        
-
-        
-        sock.sendto(StateMsg.SerializeToString(), ('localhost', 6000))
-
-        new_record.print_values()
+        # Create and send state to GUI client
+        ap_state = alert_p.get_alarm_state()
+        update_state(state_msg, store, msg, validation, ap_state, good_positions)
+        #new_record.print_values()
 
 if __name__ == "__main__":
     main()

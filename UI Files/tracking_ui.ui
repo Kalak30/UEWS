@@ -20,7 +20,7 @@
    <enum>QTabWidget::Rounded</enum>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,4,7">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,4,8">
     <item>
      <widget class="StateReceiver" name="StateReceiver" native="true">
       <property name="minimumSize">
@@ -611,6 +611,9 @@
             <property name="text">
              <string>Auto Alarm</string>
             </property>
+            <property name="autoDefault">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>
@@ -834,7 +837,7 @@
      </widget>
     </item>
     <item>
-     <widget class="Canvas" name="TrackingCanvas" native="true"/>
+     <widget class="PlotWidget" name="TrackingGraph"/>
     </item>
    </layout>
   </widget>
@@ -860,15 +863,6 @@
     <slot>setValue(bool)</slot>
     <slot>setOnColour(int)</slot>
     <slot>setOffColour(int)</slot>
-   </slots>
-  </customwidget>
-  <customwidget>
-   <class>Canvas</class>
-   <extends>QWidget</extends>
-   <header>tracking_grid</header>
-   <container>1</container>
-   <slots>
-    <slot>new_state()</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -904,27 +898,19 @@
     <signal>set_on_colour(int)</signal>
     <signal>set_off_colour(int)</signal>
     <slot>run()</slot>
+    <slot>auto_alarm(bool)</slot>
+    <slot>new_inhibit(bool)</slot>
+    <slot>manual_pressed(bool)</slot>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>PlotWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>pyqtgraph</header>
   </customwidget>
  </customwidgets>
  <resources/>
  <connections>
-  <connection>
-   <sender>StateReceiver</sender>
-   <signal>receivedState()</signal>
-   <receiver>TrackingCanvas</receiver>
-   <slot>new_state()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>11</x>
-     <y>30</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>11</x>
-     <y>565</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>StateReceiver</sender>
    <signal>set_x(int)</signal>
@@ -932,12 +918,12 @@
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>10</x>
-     <y>30</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>211</x>
-     <y>156</y>
+     <x>248</x>
+     <y>106</y>
     </hint>
    </hints>
   </connection>
@@ -948,12 +934,12 @@
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>10</x>
-     <y>30</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>211</x>
-     <y>192</y>
+     <x>248</x>
+     <y>145</y>
     </hint>
    </hints>
   </connection>
@@ -964,12 +950,12 @@
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>10</x>
-     <y>30</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>211</x>
-     <y>227</y>
+     <x>248</x>
+     <y>193</y>
     </hint>
    </hints>
   </connection>
@@ -980,12 +966,12 @@
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>10</x>
-     <y>30</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>106</x>
-     <y>156</y>
+     <x>115</x>
+     <y>106</y>
     </hint>
    </hints>
   </connection>
@@ -996,12 +982,12 @@
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>10</x>
-     <y>30</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>106</x>
-     <y>192</y>
+     <x>115</x>
+     <y>145</y>
     </hint>
    </hints>
   </connection>
@@ -1012,12 +998,12 @@
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>10</x>
-     <y>30</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>106</x>
-     <y>227</y>
+     <x>115</x>
+     <y>193</y>
     </hint>
    </hints>
   </connection>
@@ -1028,12 +1014,12 @@
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>10</x>
-     <y>30</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>106</x>
-     <y>263</y>
+     <x>115</x>
+     <y>242</y>
     </hint>
    </hints>
   </connection>
@@ -1044,12 +1030,12 @@
    <slot>setValue(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>10</x>
-     <y>30</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>331</x>
-     <y>180</y>
+     <x>461</x>
+     <y>133</y>
     </hint>
    </hints>
   </connection>
@@ -1060,12 +1046,12 @@
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>10</x>
-     <y>30</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>211</x>
-     <y>251</y>
+     <x>248</x>
+     <y>230</y>
     </hint>
    </hints>
   </connection>
@@ -1076,12 +1062,12 @@
    <slot>setOnColour(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>10</x>
-     <y>30</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>258</x>
-     <y>251</y>
+     <x>295</x>
+     <y>230</y>
     </hint>
    </hints>
   </connection>
@@ -1092,12 +1078,12 @@
    <slot>setOffColour(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>10</x>
-     <y>30</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>258</x>
-     <y>251</y>
+     <x>295</x>
+     <y>230</y>
     </hint>
    </hints>
   </connection>
@@ -1108,12 +1094,12 @@
    <slot>setValue(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>53</x>
-     <y>57</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>261</x>
-     <y>141</y>
+     <x>298</x>
+     <y>91</y>
     </hint>
    </hints>
   </connection>
@@ -1124,12 +1110,12 @@
    <slot>setValue(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>45</x>
-     <y>43</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>256</x>
-     <y>185</y>
+     <x>293</x>
+     <y>138</y>
     </hint>
    </hints>
   </connection>
@@ -1140,12 +1126,12 @@
    <slot>setValue(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>30</x>
-     <y>71</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>258</x>
-     <y>221</y>
+     <x>295</x>
+     <y>187</y>
     </hint>
    </hints>
   </connection>
@@ -1156,12 +1142,12 @@
    <slot>setValue(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>56</x>
-     <y>71</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>334</x>
-     <y>131</y>
+     <x>464</x>
+     <y>81</y>
     </hint>
    </hints>
   </connection>
@@ -1172,12 +1158,12 @@
    <slot>setValue(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>56</x>
-     <y>42</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>326</x>
-     <y>208</y>
+     <x>456</x>
+     <y>174</y>
     </hint>
    </hints>
   </connection>
@@ -1188,12 +1174,12 @@
    <slot>setValue(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>37</x>
-     <y>52</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>331</x>
-     <y>242</y>
+     <x>461</x>
+     <y>221</y>
     </hint>
    </hints>
   </connection>
@@ -1204,12 +1190,12 @@
    <slot>setValue(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>31</x>
-     <y>51</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>423</x>
-     <y>134</y>
+     <x>632</x>
+     <y>84</y>
     </hint>
    </hints>
   </connection>
@@ -1220,12 +1206,12 @@
    <slot>setValue(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>34</x>
-     <y>58</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>420</x>
-     <y>172</y>
+     <x>629</x>
+     <y>125</y>
     </hint>
    </hints>
   </connection>
@@ -1236,12 +1222,12 @@
    <slot>setValue(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>18</x>
-     <y>46</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>419</x>
-     <y>214</y>
+     <x>628</x>
+     <y>180</y>
     </hint>
    </hints>
   </connection>
@@ -1252,12 +1238,12 @@
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>33</x>
-     <y>57</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>635</x>
-     <y>137</y>
+     <x>926</x>
+     <y>87</y>
     </hint>
    </hints>
   </connection>
@@ -1268,12 +1254,12 @@
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>28</x>
-     <y>47</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>613</x>
-     <y>188</y>
+     <x>904</x>
+     <y>141</y>
     </hint>
    </hints>
   </connection>
@@ -1284,12 +1270,12 @@
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>54</x>
-     <y>63</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>635</x>
-     <y>217</y>
+     <x>926</x>
+     <y>183</y>
     </hint>
    </hints>
   </connection>
@@ -1300,12 +1286,60 @@
    <slot>display(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>35</x>
-     <y>42</y>
+     <x>8</x>
+     <y>29</y>
     </hint>
     <hint type="destinationlabel">
-     <x>597</x>
-     <y>251</y>
+     <x>888</x>
+     <y>230</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AutoAlarmToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>StateReceiver</receiver>
+   <slot>auto_alarm(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1072</x>
+     <y>105</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ManualOverride</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>StateReceiver</receiver>
+   <slot>manual_pressed(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1072</x>
+     <y>215</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>8</x>
+     <y>29</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlarmInhibitor</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>StateReceiver</receiver>
+   <slot>new_inhibit(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1072</x>
+     <y>160</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>8</x>
+     <y>29</y>
     </hint>
    </hints>
   </connection>
