@@ -2,8 +2,10 @@ syntax = "proto3";
 
 package UEWS;
 
+message StateRequest{}
+
 message GUI_State{
-    bool auto_alarm = 1;
-    bool new_inhibit = 2;
-    bool manual_pressed = 3;
+    optional bool auto_alarm = 1;
+    optional bool new_inhibit = 2;
+    optional bool manual_pressed = 3;
 }
