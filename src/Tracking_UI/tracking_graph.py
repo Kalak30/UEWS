@@ -1,6 +1,5 @@
 import sys
 import os
-from turtle import position
 import numpy as np
 import pyqtgraph as pg
 
@@ -31,12 +30,15 @@ class TrackingGraph():
         x_inner, y_inner = t_inner
         x_center, y_center = t_center
         x_outer, y_outer = t_outer
-        
+
         # plot boundaries. clipToView will only render what is in the view
-        self.plot_widget.plot(x_inner, y_inner, clipToView=True, pen=pg.mkPen(color="#ff8000"))
-        self.plot_widget.plot(x_center, y_center, clipToView=True, pen=pg.mkPen(color="#ffff00"))
-        self.plot_widget.plot(x_outer, y_outer, clipToView=True, pen=pg.mkPen(color="#00ff00"))
-        
+        self.plot_widget.plot(x_inner, y_inner, clipToView=True,
+                              pen=pg.mkPen(color="#ff8000FA", width=2.5))
+        self.plot_widget.plot(x_center, y_center, clipToView=True,
+                              pen=pg.mkPen(color="#ffff00FA", width=2.5))
+        self.plot_widget.plot(x_outer, y_outer, clipToView=True,
+                              pen=pg.mkPen(color="#00ff00FA", width=2.5))
+
         self.plot_widget.invertX(True)
         self.plot_widget.invertY(True)
         self.plot_widget.showGrid(x=True, y=True)
@@ -56,7 +58,7 @@ class TrackingGraph():
         x_axis.setTickSpacing(major=500, minor=50)
         x_axis.setLabel(text="X (feet)")
 
-       
+
 
         y_axis = self.plot_widget.getAxis('left')
         y_axis.setStyle(textFillLimits=[(0,0.6), (4, 0.4)])
@@ -64,13 +66,10 @@ class TrackingGraph():
         y_axis.setTickSpacing(major=200, minor=50)
         y_axis.setLabel(text="Y (feet)")
 
-        
-
-
         # Values coming from playing around with GUI. Nothing too rigid
         # Ensures that values at bottom aren't too weird during default size of window
         self.plot_widget.setLimits(minXRange=1000, maxXRange=17000, minYRange=300, maxYRange=5600)
-    
+
     def draw_tracks(self, state):
         """Draws the new projected and actual positions on the graph
             Returns the center position
@@ -106,23 +105,24 @@ class TrackingGraph():
         proj_x, proj_y = t_proj_pos
 
         if not hasattr(self, "curr_pos_line"):
-            self.curr_pos_line = self.plot_widget.plot(x_pos, y_pos, antialias=True, pen=pg.mkPen(color="#008000", width=2))
+            self.curr_pos_line = self.plot_widget.plot(x_pos, y_pos, antialias=True,
+                                                       pen=pg.mkPen(color="#008000FF", width=2))
         else:
             self.curr_pos_line.setData(x_pos, y_pos)
 
         if not hasattr(self,"proj_pos_line"):
-            self.proj_pos_line = self.plot_widget.plot(proj_x, proj_y, antialias=True, pen=pg.mkPen(color="#800000", width=2))
+            self.proj_pos_line = self.plot_widget.plot(proj_x, proj_y, antialias=True,
+                                                       pen=pg.mkPen(color="#800000FF", width=2))
         else:
             self.proj_pos_line.setData(proj_x, proj_y)
 
-        
+
         return new_pos
 
     def new_state(self, state):
         """ Redraws the canvas
             Calculates center
         """
-        
 
         # Draw new lines or reset position caches
         if state.reset is False:
@@ -134,5 +134,7 @@ class TrackingGraph():
             self.reset_positions = True
 
         # Setting View
-        self.plot_widget.setXRange(min=self.center[0]-self.graph_width/2, max=self.center[0]+self.graph_width/2)
-        self.plot_widget.setYRange(min=self.center[1]-self.graph_height/2, max=self.center[1]+self.graph_height/2)
+        self.plot_widget.setXRange(min=self.center[0]-self.graph_width/2,
+                                   max=self.center[0]+self.graph_width/2)
+        self.plot_widget.setYRange(min=self.center[1]-self.graph_height/2,
+                                   max=self.center[1]+self.graph_height/2)
