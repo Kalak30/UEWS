@@ -464,7 +464,7 @@ class Ui_UEWS_Tracking_GUI(object):
         self.StateReceiver.set_y_ok['bool'].connect(self.y_ok_indicator.setValue)
         self.StateReceiver.set_sub_pos_good['bool'].connect(self.sub_pos_good_indicator.setValue)
         self.StateReceiver.set_x_ok['bool'].connect(self.x_ok_indicator.setValue)
-        self.AlarmInhibitor.clicked['bool'].connect(self.StateReceiver.new_inhibit)
+        self.AlarmInhibitor.clicked.connect(self.StateReceiver.new_inhibit)
         self.StateReceiver.set_valid_track_pts['int'].connect(self.valid_track_pts_val.display)
         self.StateReceiver.set_speed['int'].connect(self.speed_val.display)
         self.StateReceiver.set_on_colour['int'].connect(self.speed_ok_indicator.setOnColour)
