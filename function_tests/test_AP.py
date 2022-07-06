@@ -12,10 +12,12 @@ sys.path.insert(0, '../src')
 from tspi import Vector
 import bounds_check
 import alert_processor
+import tspi
 import time
+import datetime
 
 class TestAP(unittest.TestCase):
-    """
+
     continious = False
 
     def test_valid_data(self):
@@ -128,6 +130,8 @@ class TestAP(unittest.TestCase):
     def test_no_data(self):
         if not self.continious:
             AP = alert_processor.AlertProcessor()
+        
+        test_record = r1 = tspi.TSPIRecord(Vector(0,0,0), Vector(0, 0, 0), time=datetime.datetime(1,1,1,1,1,1), heading=0, knots=1)
 
         #recive 2 sets of data, then stop
         AP.recived_all_data()
@@ -152,7 +156,7 @@ class TestAP(unittest.TestCase):
         self.assertEqual(AP.no_output_alarm, 1)
 
         #alarm should stay on even though recived data. need 5 valid to turn off
-        AP.recived_no_code11_data()
+        AP.recived_no_code11_data(test_record)
         self.assertEqual(AP.no_output_alarm, 1)
         self.assertEqual(AP.consec_success, 1)
 
@@ -161,13 +165,13 @@ class TestAP(unittest.TestCase):
         self.assertEqual(AP.consec_success, 0)
 
         #five messages of either full or no code 11 should turn off alarm. 2 seconds between each one to simulate real data
-        AP.recived_noCode11_data()
+        AP.recived_no_code11_data(test_record)
         self.assertEqual(AP.consec_success, 1)
         time.sleep(2)
         
         AP.recived_all_data()
         time.sleep(2)
-        AP.recived_noCode11_data()
+        AP.recived_no_code11_data(test_record)
         time.sleep(2)
         AP.recived_all_data()
         time.sleep(2)
@@ -268,17 +272,12 @@ class TestAP(unittest.TestCase):
 
 
         return
-"""
+
     def test_alart_ON(self):
         AP = alert_processor.AlertProcessor()
         
         AP.set_alert()
 
-        AP.recived_toggle_update(0,0)
-        AP.recived_toggle_update(1,0)
-        AP.recived_toggle_update(1,1)
-
-        """
         #check if timer started
         self.assertTrue(AP.seconds_till_alarm.is_alive())
 
@@ -294,14 +293,14 @@ class TestAP(unittest.TestCase):
         self.assertFalse(AP.alarm_ON_manual)
 
         #change auto to manual control, should turn off alarm
-        AP.recived_auto_change(0)
+        AP.recived_auto_change() #to man
 
         self.assertFalse(AP.alarm_ON)
         self.assertFalse(AP.alarm_ON_auto)
         self.assertFalse(AP.alarm_ON_manual)
 
         #turn back to automatic, alarm counter should start again becuase aler_enable is still one
-        AP.recived_auto_change(1)
+        AP.recived_auto_change() #to auto
         self.assertTrue(AP.seconds_till_alarm.is_alive())
         time.sleep(10.1)
         self.assertTrue(AP.alarm_ON)
@@ -328,23 +327,23 @@ class TestAP(unittest.TestCase):
 
 
         #change to manual mode while alert is on. This will turn alarm off
-        AP.recived_auto_change(0)
+        AP.recived_auto_change() #to man
         self.assertFalse(AP.alarm_ON)
 
         #set alarm on manualy. This should enable alarm again, but from manual 
-        AP.recived_manual_alarm(1)
+        AP.recived_manual_alarm_change() #to on
         self.assertTrue(AP.alarm_ON)
         self.assertFalse(AP.alarm_ON_auto)
         self.assertTrue(AP.alarm_ON_manual)
 
         #turn off manual alarm
-        AP.recived_manual_alarm(0)
+        AP.recived_manual_alarm_change() #to off
         self.assertFalse(AP.alarm_ON_manual)
 
 
         #turn BACK to automatic. 
         #alarm should turn off and automatic counter should start again
-        AP.recived_auto_change(1)
+        AP.recived_auto_change() #to auto
         self.assertFalse(AP.alarm_ON)
         self.assertFalse(AP.alarm_ON_auto)
         self.assertFalse(AP.alarm_ON_manual)
@@ -361,7 +360,7 @@ class TestAP(unittest.TestCase):
         AP.set_alert()
         self.assertTrue(AP.seconds_till_alarm.is_alive())
         time.sleep(5)
-        AP.recived_auto_change(0)
+        AP.recived_auto_change() #to man
 
         #now in manual mode everything should be off., even after waiting 
         self.assertFalse(AP.alarm_ON)
@@ -371,8 +370,8 @@ class TestAP(unittest.TestCase):
         self.assertFalse(AP.alarm_ON)
 
         # Enable the alarm, then switch back to auto before disabling.
-        AP.recived_manual_alarm(1)
-        AP.recived_auto_change(1)
+        AP.recived_manual_alarm_change() #to on
+        AP.recived_auto_change() #to auto
 
         #manual alarm should turn off, and automatic should start again
         self.assertFalse(AP.alarm_ON)
@@ -390,13 +389,17 @@ class TestAP(unittest.TestCase):
         self.assertFalse(AP.alarm_ON_auto)
         self.assertFalse(AP.alarm_ON_manual)
         self.assertFalse(AP.seconds_till_alarm.is_alive())
-        """
+        
 
     def test_clear_all(self):
         AP = alert_processor.AlertProcessor()
-        AP.alarm_enable()
+        AP.set_boundary_alarm()
+        AP.set_depth_alarm()
+        AP.recived_all_data()
+        time.sleep(12)
         AP.reset_AP()
         self.assertEqual(AP.no_output_alarm, 0)
 
 if __name__ == '__main__':
+    print("running Alert Processor test. This will take a while, since we have to simulate loss of data time and alarm inhibit time")
     unittest.main()

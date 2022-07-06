@@ -480,9 +480,9 @@ class AlertProcessor:
             self.seconds_till_alarm.cancel()
 
             #start new timer at 2 minutes
-            self.seconds_till_alarm = self.__get_seconds_alarm_timer__(30)
+            self.seconds_till_alarm = self.__get_seconds_alarm_timer__(120)
             self.seconds_till_alarm.start()
-            print("inhibit pressed, reset timer to 2 minutes")
+            logger.debug("inhibit pressed, reset timer to 2 minutes")
 
         #inhibit was pressed when either alarm_ON is already sounding, or when there is no coundown and everything is fine
         else:
