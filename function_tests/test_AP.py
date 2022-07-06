@@ -15,7 +15,7 @@ import alert_processor
 import time
 
 class TestAP(unittest.TestCase):
-
+    """
     continious = False
 
     def test_valid_data(self):
@@ -152,7 +152,7 @@ class TestAP(unittest.TestCase):
         self.assertEqual(AP.no_output_alarm, 1)
 
         #alarm should stay on even though recived data. need 5 valid to turn off
-        AP.recived_noCode11_data()
+        AP.recived_no_code11_data()
         self.assertEqual(AP.no_output_alarm, 1)
         self.assertEqual(AP.consec_success, 1)
 
@@ -268,7 +268,122 @@ class TestAP(unittest.TestCase):
 
 
         return
+"""
+    def test_alart_ON(self):
+        AP = alert_processor.AlertProcessor()
+        
+        AP.set_alert()
+
+        #check if timer started
+        self.assertTrue(AP.seconds_till_alarm.is_alive())
+
+        #wait 9 seconds and wait to make sure alarm is not on
+        time.sleep(9)
+        self.assertFalse(AP.alarm_ON)
+
+        #after 1 more second it should be on
+        #it should also be on from auto, not manual
+        time.sleep(1.1)
+        self.assertTrue(AP.alarm_ON)
+        self.assertTrue(AP.alarm_ON_auto)
+        self.assertFalse(AP.alarm_ON_manual)
+
+        #change auto to manual control, should turn off alarm
+        AP.recived_auto_change(0)
+
+        self.assertFalse(AP.alarm_ON)
+        self.assertFalse(AP.alarm_ON_auto)
+        self.assertFalse(AP.alarm_ON_manual)
+
+        #turn back to automatic, alarm counter should start again becuase aler_enable is still one
+        AP.recived_auto_change(1)
+        self.assertTrue(AP.seconds_till_alarm.is_alive())
+        time.sleep(10.1)
+        self.assertTrue(AP.alarm_ON)
+        self.assertTrue(AP.alarm_ON_auto)
+        self.assertFalse(AP.alarm_ON_manual)
+
+        #turn alert off, should turn alarm_on off
+        AP.clear_alert()
+        self.assertFalse(AP.alarm_ON)
 
 
+        #start alart and inhibit it. Should take 2 minutes to enable
+        AP.set_alert()
+        time.sleep(9)
+        AP.recived_inhibit()
+        time.sleep(1.1)
+        self.assertFalse(AP.alarm_ON)
+        self.assertTrue(AP.seconds_till_alarm.is_alive())
+        time.sleep(120)
+        self.assertFalse(AP.seconds_till_alarm.is_alive())
+        self.assertTrue(AP.alarm_ON)
+        self.assertTrue(AP.alarm_ON_auto)
+        self.assertFalse(AP.alarm_ON_manual)
+
+
+        #change to manual mode while alert is on. This will turn alarm off
+        AP.recived_auto_change(0)
+        self.assertFalse(AP.alarm_ON)
+
+        #set alarm on manualy. This should enable alarm again, but from manual 
+        AP.recived_manual_alarm(1)
+        self.assertTrue(AP.alarm_ON)
+        self.assertFalse(AP.alarm_ON_auto)
+        self.assertTrue(AP.alarm_ON_manual)
+
+        #turn off manual alarm
+        AP.recived_manual_alarm(0)
+        self.assertFalse(AP.alarm_ON_manual)
+
+
+        #turn BACK to automatic. 
+        #alarm should turn off and automatic counter should start again
+        AP.recived_auto_change(1)
+        self.assertFalse(AP.alarm_ON)
+        self.assertFalse(AP.alarm_ON_auto)
+        self.assertFalse(AP.alarm_ON_manual)
+        self.assertTrue(AP.seconds_till_alarm.is_alive())
+
+        #alarm should enable again after 10 seconds
+        time.sleep(10.1)
+        self.assertTrue(AP.alarm_ON)
+        self.assertTrue(AP.alarm_ON_auto)
+        self.assertFalse(AP.alarm_ON_manual)
+
+        #turn off alert and then back on. wait halfway though timer, then switch to manual
+        AP.clear_alert()
+        AP.set_alert()
+        self.assertTrue(AP.seconds_till_alarm.is_alive())
+        time.sleep(5)
+        AP.recived_auto_change(0)
+
+        #now in manual mode everything should be off., even after waiting 
+        self.assertFalse(AP.alarm_ON)
+        self.assertFalse(AP.alarm_ON_auto)
+        self.assertFalse(AP.alarm_ON_manual)
+        time.sleep(6)
+        self.assertFalse(AP.alarm_ON)
+
+        # Enable the alarm, then switch back to auto before disabling.
+        AP.recived_manual_alarm(1)
+        AP.recived_auto_change(1)
+
+        #manual alarm should turn off, and automatic should start again
+        self.assertFalse(AP.alarm_ON)
+        self.assertFalse(AP.alarm_ON_auto)
+        self.assertFalse(AP.alarm_ON_manual)
+        self.assertTrue(AP.seconds_till_alarm.is_alive())
+
+        #cancel alert 5 seconds in. Should stop the timer and alarm_on
+        time.sleep(5)
+        AP.clear_alert()
+        AP.seconds_till_alarm.cancel()
+        #self.assertFalse(AP.seconds_till_alarm.is_alive()) #cannot assert false after canceling, race condition
+        time.sleep(10.1)
+        self.assertFalse(AP.alarm_ON)
+        self.assertFalse(AP.alarm_ON_auto)
+        self.assertFalse(AP.alarm_ON_manual)
+        self.assertFalse(AP.seconds_till_alarm.is_alive())
 if __name__ == '__main__':
     unittest.main()

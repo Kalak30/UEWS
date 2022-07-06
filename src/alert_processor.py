@@ -1,6 +1,7 @@
 """ Handles the timers and various alert variables to be able to accuratly alert
     operators when a submarines should be alerted that they are about to make a mistake.
 """
+from tkinter.tix import Tree
 from dynaconf import settings
 
 import threading
@@ -19,7 +20,7 @@ class AlertProcessor:
         missed.
         If an alarm should be sent, alarm_enable is set to True, otherwise it is False.
     """
-    #get timers for differnt alarm types
+    #-----------get timers for differnt alarm types----------
     def __get_no_data_timer__(self, time):
         """timer for complete loss of data"""
         return threading.Timer(time, self.set_no_data_alarm)
@@ -31,6 +32,24 @@ class AlertProcessor:
     def __get_between_timer__(self, time):
         """Timer for monitoring the time in between messages"""
         return threading.Timer(time, self.__between_ended__)
+
+    def __get_seconds_alarm_timer__(self, time):
+        #TODO NEED TO PLAY ANOTHER ALERT SOUND WHILE THIS IS COUNTING DOWN
+        return threading.Timer(time, self.set_alarm_ON_auto) 
+
+
+    def play_computer_sound(self):
+        #TODO play some alert sound from computer
+        logger.info("COMPUTER SOUNDING")
+
+    def play_water_sound(self):
+        #TODO play wav file, probably do this somewhere else?
+        logger.info("ALARM SOUNDING")
+        return
+
+    def stop_water_sound(self):
+        #TODO stop the wav file, probabl do this somewhere else
+        logger.info("ALARM STOPPED")
 
     def __between_ended__(self):
         """Function for get_between to call. Resets consec_successes"""
@@ -79,7 +98,7 @@ class AlertProcessor:
 
 
 
-    #----start timers----
+    #-----------start timers--------------
     def __start_no_output_timer__(self):
         """ start timer for compleat loss of incomming data"""
         self.data_timer.start()
@@ -92,8 +111,13 @@ class AlertProcessor:
         self.sub_timer.start()
         logger.debug(f"No sub timer started with {time} seconds")
 
+    def __start_seconds_till_alarm_timer__(self):
+        logger.info("staring seconds till alarm timer")
+        self.seconds_till_alarm = self.__get_seconds_alarm_timer__(10)
+        self.seconds_till_alarm.start()
 
-    #----reset timers----
+
+    #----------------reset timers---------------
     def __reset_no_output_timer__(self):
         """reset timer used for compleat loss of data incomming. Starts another timer to wait till next no output"""
         self.data_timer.cancel()
@@ -123,6 +147,14 @@ class AlertProcessor:
         self.between_timer.start()
         logger.debug("reset between timer")
   
+
+    def __clear_seconds_till_alarm_timer(self):
+        if self.seconds_till_alarm.is_alive():
+            self.seconds_till_alarm.cancel()
+            logger.debug("cleared seconds till alarm timer")
+        return
+    
+
     #----reciving data functions----
     def recived_all_data(self):
         """ Function to handle a complete incomming message (has code 11).
@@ -302,14 +334,47 @@ class AlertProcessor:
     
     #----master alert----
     def clear_alert(self):
-        """Turns on the Alarm_Enablew"""
+        """Turns off the Alarm_Enable"""
         self.alarm_enable = False
         self.total_alert = 0
         logger.info("Alert Enable Now OFF")
+        self.clear_alarm_ON_auto()
+
 
     def set_alert(self):
         self.alarm_enable = True
         logger.info("Alert Enable Now ON")
+        if self.auto_toggle:
+            self.__start_seconds_till_alarm_timer__()
+
+    #-----ALARM ON-------
+    def clear_alarm_ON_auto(self):
+        #clear timer if it is on
+        self.__clear_seconds_till_alarm_timer()
+        if self.alarm_ON_auto:
+            self.alarm_ON_auto = False
+            logger.info("Turned off auto alarm")
+            self.refresh_alarm_ON()
+        
+
+
+    def clear_alarm_ON_manual(self):
+        if self.alarm_ON_manual:
+            self.alarm_ON_manual = False
+            logger.info("Turned off manual alarm")
+            self.refresh_alarm_ON()
+
+    def set_alarm_ON_auto(self):
+        if not self.alarm_ON_auto:
+            self.alarm_ON_auto = True
+            self.refresh_alarm_ON()
+            logger.info("Turned on alarm (from auto alarm)")
+
+    def set_alarm_ON_manual(self):
+        if not self.alarm_ON_manual:
+            self.alarm_ON_manual = True
+            self.refresh_alarm_ON()
+            logger.info("Turned on alarm (from manual alarm)")
 
     #refresh master alert
     def refresh_alarm(self):
@@ -323,6 +388,16 @@ class AlertProcessor:
             if self.alarm_enable:
                 self.clear_alert()
         return
+
+    def refresh_alarm_ON(self):
+        """Checks the auto alarm and manual alarm. Sets master alarm_ON if either are True"""
+        if self.alarm_ON_manual or self.alarm_ON_auto:
+            if not self.alarm_ON:
+                self.alarm_ON = True
+                self.play_water_sound()
+        else:
+            self.alarm_ON = False
+            self.stop_water_sound()
 
     #print which alarm set off alarm_enable, for debugging
     def print_alarm(self):
@@ -359,6 +434,50 @@ class AlertProcessor:
                 "total_no_sub": self.total_no_sub
                 }
 
+    def recived_auto_change(self, auto_status):
+        self.auto_toggle = auto_status
+
+        #manual mode has been switched to automatic
+        if self.auto_toggle:
+            if self.alarm_enable:
+                self.__start_seconds_till_alarm_timer__()
+            if self.alarm_ON_manual: #clear manual alarm if it is on
+                self.clear_alarm_ON_manual()
+            return
+        #automatic mode has been switched to manuel. clear timer if nessisarty
+        else:
+            self.__clear_seconds_till_alarm_timer()
+            self.clear_alarm_ON_auto() #clear alarm if it is on
+            
+        return
+    def recived_inhibit(self):
+        #make sure timer is active
+        if self.seconds_till_alarm.is_alive():
+            self.seconds_till_alarm.cancel()
+
+            #start new timer at 2 minutes
+            self.seconds_till_alarm = self.__get_seconds_alarm_timer__(120)
+            self.seconds_till_alarm.start()
+            print("inhibit pressed, reset timer to 2 minutes")
+
+        #inhibit was pressed when either alarm_ON is already sounding, or when there is no coundown and everything is fine
+        else:
+            if self.alarm_ON:
+                logger.debug("inhibit pressed but alarm is already sounding. No action taken")
+            else:
+                logger.debug("inhibit pressed but there is no coundown and no alarm. No action taken")
+        return
+
+    def recived_manual_alarm(self, alarm):
+        """Function to call when the manual button is hit.
+        param: alarm: T/F if manual alarm is being enabled or disabled"""
+        if alarm:
+            self.set_alarm_ON_manual()
+        else:
+            #if was previouly on, then turn off manual, but refresh in case alarm-on-auto is still on
+            if self.alarm_ON_manual:
+                self.clear_alarm_ON_manual()
+        return
     def __new__(cls):
         """ Function to force Alert Processor to only have 1 instance. If an instance already
             exists, return that instance. Otherwise create a new one and return that.
@@ -389,7 +508,16 @@ class AlertProcessor:
         self.initialized = True
         logger.debug("created alert_process")
 
-        #master alarm (is set if any of below are true)
+        #actual alarm for sending sound
+        self.alarm_ON = False
+        self.alarm_ON_auto = False
+        self.alarm_ON_manual = False
+
+        #control input
+        self.auto_toggle = True
+
+
+        #master alarm (is set if any of below are true). Once this is enabled, 10 seconds until alarm_ON
         self.alarm_enable = False
 
         #differnt types of alarms
@@ -400,7 +528,7 @@ class AlertProcessor:
         self.depth_alarm = False
         self.boundary_alarm = False
 
-        # TODO: Add time dilation
+        # TODO: Add time dilationv for all timers
         # Length in seconds of timer until an alert should be given if no sub track on PSK
         self.no_sub_alert_time = settings.NO_SUB_ALERT_TIME #defulats to 39.
 
@@ -430,9 +558,13 @@ class AlertProcessor:
         self.data_timer = self.__get_no_data_timer__(self.no_output_alert_time)
         self.__start_no_output_timer__()
 
-        #create and start timer for no sub track
+        #create timer for no sub track
         self.sub_timer = self.__get_no_sub_timer__(self.no_sub_alert_time)
 
-        #in between data timer
+        #create in between data timer
         self.between_timer = self.__get_between_timer__(self.between_time_max)
+
+        #create timer for seconds till alarm on
+        self.seconds_till_alarm = self.__get_seconds_alarm_timer__(10)
         
+
