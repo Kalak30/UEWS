@@ -79,6 +79,7 @@ class ReceiverThread(QThread):
             self.new_state.emit(state)
             return
 
+
         # Completely the same, no need to emit signals
         if MessageToString(prev_recv) == MessageToString(state):
             return
@@ -86,15 +87,7 @@ class ReceiverThread(QThread):
         if len(state.store.records) == 0 or len(prev_recv.store.records) == 0:
             return
 
-        new_record = state.store.records[0]
-        old_record = prev_recv.store.records[0]
-        
-        
-        # Only update graph on change in position
-        if old_record.x != new_record.x or old_record.y != new_record.y or \
-            old_record.proj_x != new_record.proj_x or \
-            old_record.proj_y != new_record.proj_y:
-            self.new_state.emit(state)
+        self.new_state.emit(state)
 
 
 

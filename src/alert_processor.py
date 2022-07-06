@@ -1,14 +1,29 @@
 """ Handles the timers and various alert variables to be able to accuratly alert
     operators when a submarines should be alerted that they are about to make a mistake.
 """
-from dynaconf import settings
-
 import threading
 import logging
+from dataclasses import dataclass
+from dynaconf import settings
 from tspi import TSPIRecord
 import bounds_check
 
-
+@dataclass
+class AlertProcessorState:
+    """ Contains all data representing the state of the Alert Processor"""
+    alarm_enable: bool
+    no_output_alarm: bool
+    no_sub_alarm: bool
+    valid_alarm: bool
+    depth_alarm: bool
+    boundary_alarm: bool
+    depth_violations: int
+    consec_valid: int
+    bounds_violations: int
+    invalid_data: int
+    total_valid_track: int
+    total_alert: int
+    total_no_sub: int
 
 logger = logging.getLogger(__name__)
 
@@ -137,6 +152,7 @@ class AlertProcessor:
 
     def recived_no_code11_data(self, record : TSPIRecord):
         """Function to handle incommiong data that does NOT contain code 11 subtrack"""
+        self.total_no_sub += 1
         if self.no_output_alarm:
             self.__check_between__()
        
@@ -242,7 +258,7 @@ class AlertProcessor:
     def set_no_sub_alarm_enable(self):
         """Turn on alarm for no code 11 sub track"""
         self.total_alert += 1
-        self.total_no_sub += 1
+        
         self.no_sub_alarm = True
         logger.info("no sub track alarm set")
         self.refresh_alarm()
