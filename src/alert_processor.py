@@ -359,21 +359,21 @@ class AlertProcessor:
     def get_alarm_state(self) -> dict:
         """Returns a dictionary containing the current state of the alert processor
         """
-        return {
-                "alarm_enable": self.alarm_enable,
-                "no_output_alarm": self.no_output_alarm,
-                "no_sub_alarm": self.no_sub_alarm,
-                "valid_alarm": self.valid_alarm,
-                "depth_alarm": self.depth_alarm,
-                "boundary_alarm": self.boundary_alarm,
-                "depth_violations": self.depth_violation_count,
-                "consec_valid": self.consec_success,
-                "bounds_violations": self.bounds_violation_count,
-                "invalid_data": self.invalid_data_count,
-                "total_valid_track": self.total_valid_track,
-                "total_alert": self.total_alert,
-                "total_no_sub": self.total_no_sub
-                }
+        return AlertProcessorState(
+                alarm_enable=self.alarm_enable,
+                no_output_alarm=self.no_output_alarm,
+                no_sub_alarm=self.no_sub_alarm,
+                valid_alarm=self.valid_alarm,
+                depth_alarm=self.depth_alarm,
+                boundary_alarm=self.boundary_alarm,
+                depth_violations=self.depth_violation_count,
+                consec_valid=self.consec_success,
+                bounds_violations=self.bounds_violation_count,
+                invalid_data=self.invalid_data_count,
+                total_valid_track=self.total_valid_track,
+                total_alert=self.total_alert,
+                total_no_sub=self.total_no_sub
+                )
 
     def __new__(cls):
         """ Function to force Alert Processor to only have 1 instance. If an instance already
@@ -397,7 +397,7 @@ class AlertProcessor:
     def __init__(self):
         """ Init for Alert Processor. Creates all variables, also starts loss of data and
             no Code 11 timers."""
-        #if not the first instance, don't rubn __init__
+        #if not the first instance, don't run __init__
         if self.initialized :
             return
 
