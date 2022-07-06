@@ -30,7 +30,7 @@ class PositionsInBounds:
 @dataclass
 class StateMessage:
     """ A wrapper for the State protobuf. """
-    protobuf: StatePB.State = field(default)
+    protobuf: StatePB.State = field(default=StatePB.State())
 
     def __post_init__(self):
         self.protobuf = StatePB.State()
