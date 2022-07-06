@@ -11,27 +11,9 @@ import proto_src.gui_state_pb2 as GStatePB
 import proto_src.gui_connection_pb2 as GConnPB
 
 state_lock = threading.Lock()
-class GUIPortHandler:
-    """ Handles getting and initializing GUIPorts"""
-    gui_port_list = []
-    curr_index = 0
-    def __init__(self):
-        self.init_gui_ports()
 
-    def init_gui_ports(self):
-        """ Returns list of all GUI ports"""
-        first=settings.GUI_PORT_RANGE["first"]
-        last=settings.GUI_PORT_RANGE["last"]
-        step=settings.GUI_PORT_RANGE["step"]
-        self.gui_port_list =  [x for x in range(first, last, step)]
-
-    def get_next(self):
-        """ Gets the next available GUI port"""
-        if self.curr_index >= len(self.gui_port_list):
-            raise Exception("Tried to get a port, but no mroe are available")
-        port = self.gui_port_list[self.curr_index]
-        self.curr_index += 1
-        return port
+# port of 0 makes OS choose an open port
+LOCAL_PORT_ADDR = ('127.0.0.1', 0)
 
 class Connection:
     """ Represents a connection between two processes"""
@@ -62,6 +44,10 @@ class ReceivingConnection(Connection):
             return
         self.socket.sendto(msg, self.remote_socket_address)
 
+    def get_port(self):
+        """ Returns the port of the socket"""
+        return self.socket.getsockname()[1]
+
     
 class SendingConnection(Connection):
     """ Handler for creating a socket to connect and send data"""
@@ -89,12 +75,13 @@ class BidirectionalConnection:
         """ Sends a message to remote send address"""
         self.send_conn.send(message)
 
+    def get_listen_port(self):
+        """ Gets the port the listening socket is bound to"""
+        return self.recv_conn.get_port()
+
 
 SERV_ADDRESS = (settings.SERVER_IP, settings.SERVER_PORT)
 GUI_EST_CONN = ('127.0.0.1', settings.GUI_EST_CONN_PORT)
-GUI_STATE_RECV = ('127.0.0.1', settings.GUI_SERVICER_PORT)
-GUI_STATE_SEND = (settings.RCO_GUI_IP, settings.RCO_GUI_PORT)
-GUI_CONTROL_RECV = ('127.0.0.1', 9000)
 class GUIConnection:
     """ Connects to a GUI. Handles threads associated with the connection"""
     gui_req_thread = None
@@ -143,6 +130,10 @@ class GUIConnection:
                                                name="GUI_CONTROL_HANDLER")
         self.gui_control_thread.start()
 
+    def get_listening_ports(self):
+        """ Gets the ports that all listening sockets are using"""
+        return (self.state_conn.get_listen_port(), self.control_conn.get_port())
+
 
 def gui_control_callback(data):
     """ A callback for the GUI connection to handle gui_control messages"""
@@ -169,7 +160,6 @@ class ConnectionHandler:
     def __init__(self, state_msg):
         self.server_conn = ReceivingConnection(loc_soc_addr=SERV_ADDRESS, rem_soc_addr=None)
         self.gui_conn_establish = ReceivingConnection(loc_soc_addr=GUI_EST_CONN, rem_soc_addr=None)
-        self.gui_port_handle = GUIPortHandler()
 
         self.state_msg = state_msg
         self.gui_conn_est_thread = None
@@ -181,20 +171,15 @@ class ConnectionHandler:
         while True:
             state_lis_port, rem_addr = self.gui_conn_establish.recv(callback=gui_establish_callback)
             try:
-                state_req_port = self.gui_port_handle.get_next()
-                gui_state_port = self.gui_port_handle.get_next()
-                establish_conn_ack = GConnPB.EstablishConnectionAck()
-
-                establish_conn_ack.state_req_port = state_req_port
-                establish_conn_ack.gui_state_port = gui_state_port
-                self.gui_conn_establish.send_back(establish_conn_ack.SerializeToString())
-                
-                state_req = ('127.0.0.1', state_req_port)
-                gui_state = ('127.0.0.1', gui_state_port)
                 state_lis = (rem_addr[0], state_lis_port)
-                self.gui_connections.append(GUIConnection(state_req, gui_state, state_lis))
-                self.gui_connections[-1].start_reception(state_msg)
-                
+                gui_conn = GUIConnection(LOCAL_PORT_ADDR, LOCAL_PORT_ADDR, state_lis)
+                gui_conn.start_reception(state_msg)
+                self.gui_connections.append(gui_conn)
+                establish_conn_ack = GConnPB.EstablishConnectionAck()
+                srp, gsp = gui_conn.get_listening_ports()
+                establish_conn_ack.state_req_port = srp
+                establish_conn_ack.gui_state_port = gsp
+                self.gui_conn_establish.send_back(establish_conn_ack.SerializeToString())
             except Exception as exception:
                 print(f"Error: {exception}")
                 exit()
