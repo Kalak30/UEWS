@@ -8,11 +8,13 @@ from google.protobuf.text_format import MessageToString
 
 import proto_src.state_pb2 as StatePB
 import proto_src.gui_state_pb2 as GStatePB
+import proto_src.gui_connection_pb2 as GConnPB
 
 # TODO: Make address configurable
-LISTENING_SOCKET_ADDR = ('127.0.0.1', settings.RCO_GUI_PORT)
-BACK_STATE_RECV = ('127.0.0.1', settings.GUI_SERVICER_PORT)
-BACK_CONTROL_RECV = ('127.0.0.1', 9000)
+GUI_CONN_EST = ('127.0.0.1', settings.GUI_EST_CONN_PORT)
+
+# Bind to zero to get an os specified port
+LISTENING_SOCKET_ADDR = ('127.0.0.1', 0)
 
 LOCAL_RECV =  socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 LOCAL_SEND = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -21,6 +23,9 @@ class SendingThread(QThread):
     """ Thread to send messages to the backend requesting updates"""
     state_req = GStatePB.StateRequest()
     gui_state = GStatePB.GUI_State()
+    back_state_recv = 0
+    back_control_recv = 0
+    connected = False
 
     def auto_alarm(self):
         """ Updates the auto_alarm value in the GUI state protobuf"""
@@ -40,14 +45,40 @@ class SendingThread(QThread):
     def run(self):
         """ Continually sends to the backend"""
         be_socket = LOCAL_SEND
-        while True:
-            be_socket.sendto(self.state_req.SerializeToString(), BACK_STATE_RECV)
+        # Create connection and get ports from backend
+        conn_establish = GConnPB.EstablishConnection()
+        conn_establish.state_lis_port = LOCAL_RECV.getsockname()[1] # Get the port of the recv sock
+        print(f"LIST_PORT: {LOCAL_RECV.getsockname()[1]}")
+
+        received_response = False
+        data, rem_addr = 0, 0
+        while not received_response:
+            try:
+                be_socket.sendto(conn_establish.SerializeToString(), GUI_CONN_EST)
+
+                # Receive response
+                data, rem_addr = be_socket.recvfrom(1024)
+                received_response = True
+            except ConnectionRefusedError:
+                print("Connection refused")
+
+        conn_ack = GConnPB.EstablishConnectionAck()
+        conn_ack.ParseFromString(data)
+        print(conn_ack)
+        self.back_state_recv = (rem_addr[0], conn_ack.state_req_port)
+        self.back_control_recv = (rem_addr[0], conn_ack.gui_state_port)
+        self.connected = True
+
+        while self.connected:
+            be_socket.sendto(self.state_req.SerializeToString(), self.back_state_recv)
             time.sleep(0.1)
 
     def send_control_update(self):
         """ Sends a message to backend indicating that gui control has changed"""
+        if not self.connected:
+            return
         be_socket = LOCAL_SEND
-        be_socket.sendto(self.gui_state.SerializeToString(), BACK_CONTROL_RECV)
+        be_socket.sendto(self.gui_state.SerializeToString(), self.back_control_recv)
         self.gui_state.Clear()
 
 
@@ -59,7 +90,7 @@ class ReceiverThread(QThread):
     def run(self):
         """ Connects to the backend and emits a new_state notice"""
         sock = LOCAL_RECV
-        sock.bind(LISTENING_SOCKET_ADDR)
+        
         state = StatePB.State()
         prev_recv = StatePB.State()
         while True:
@@ -139,6 +170,7 @@ class StateReceiver(QWidget):
         self.receiver_thread = ReceiverThread(self)
         self.sender_thread = SendingThread(self)
 
+        LOCAL_RECV.bind(LISTENING_SOCKET_ADDR)
         self.receiver_thread.start()
         self.sender_thread.start()
 

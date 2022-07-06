@@ -1,9 +1,11 @@
 
 [default]
 # Connection 
-# 
 server_ip = "localhost"
 server_port = 6000
+gui_port_range = { first=6001, last=6050, step=1}
+gui_est_conn_port = 8096
+
 gui_servicer_port = 6001
 
 rco_gui_ip = "localhost"

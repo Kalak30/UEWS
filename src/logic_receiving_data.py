@@ -96,11 +96,11 @@ def main():
 
     while True:
         msg = RsdfPB.RSDF()
-        data = connection_handle.server_conn.recv()
+        data, _ = connection_handle.server_conn.recv()
         msg.ParseFromString(data)
 
         if msg.reset:
-            connection_handle.gui_conn.send_reset(state_msg=state_msg)
+            connection_handle.send_reset(state_msg=state_msg)
         else:
             # If new data set starts with no pp, will not get reset
             state_msg.reset = False

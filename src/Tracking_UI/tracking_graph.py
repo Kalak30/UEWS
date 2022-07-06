@@ -45,7 +45,7 @@ class TrackingGraph():
 
         # Could make this changable via a button on GUI to allow for graph navigation. Could be cool
         # but not needed
-        self.plot_widget.setMouseEnabled(x=False, y=False)
+        #self.plot_widget.setMouseEnabled(x=False, y=False)
 
         self.plot_widget.setXRange(0, self.graph_width)
         self.plot_widget.setYRange(0, self.graph_height)
@@ -68,7 +68,7 @@ class TrackingGraph():
 
         # Values coming from playing around with GUI. Nothing too rigid
         # Ensures that values at bottom aren't too weird during default size of window
-        self.plot_widget.setLimits(minXRange=1000, maxXRange=17000, minYRange=300, maxYRange=5600)
+        #self.plot_widget.setLimits(minXRange=1000, maxXRange=17000, minYRange=300, maxYRange=5600)
 
     def draw_tracks(self, state):
         """Draws the new projected and actual positions on the graph
@@ -133,7 +133,7 @@ class TrackingGraph():
             self.reset_positions = True
 
         # Setting View
-        self.plot_widget.setXRange(min=self.center[0]-self.graph_width/2,
-                                   max=self.center[0]+self.graph_width/2)
-        self.plot_widget.setYRange(min=self.center[1]-self.graph_height/2,
-                                   max=self.center[1]+self.graph_height/2)
+        #self.plot_widget.setXRange(min=self.center[0]-self.graph_width/2,
+        #                           max=self.center[0]+self.graph_width/2)
+        #self.plot_widget.setYRange(min=self.center[1]-self.graph_height/2,
+        #                           max=self.center[1]+self.graph_height/2)
