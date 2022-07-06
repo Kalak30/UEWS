@@ -88,7 +88,7 @@ class GUIConnection:
         """ Sends a reset message so the GUI can clean its interface"""
         with state_lock:
             state_msg.clear()
-            state_msg.set_reset(True)
+            state_msg.reset = True
             self.state_conn.send(state_msg.serialize_to_string())
 
     def send_state(self,state_msg: state_message.StateMessage):
@@ -106,7 +106,6 @@ def gui_control_callback(data):
     #AP.update(gui_control)
     #if hasattr(gui_control, "new_inhibit"):
     # then update new_inhibit
-    print(gui_control)
     return gui_control
 
 class ConnectionHandler:

@@ -128,7 +128,6 @@ class TrackingGraph():
         if state.reset is False:
             self.center = self.draw_tracks(state)
         else:
-            print("reset")
             self.positions = np.zeros((1,2))
             self.proj_positions = np.zeros((1,2))
             self.reset_positions = True

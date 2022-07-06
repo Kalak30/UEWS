@@ -22,19 +22,19 @@ class SendingThread(QThread):
     state_req = GStatePB.StateRequest()
     gui_state = GStatePB.GUI_State()
 
-    def auto_alarm(self, auto_alarm):
+    def auto_alarm(self):
         """ Updates the auto_alarm value in the GUI state protobuf"""
-        self.gui_state.auto_alarm = auto_alarm
+        self.gui_state.auto_alarm = True
         self.send_control_update()
 
-    def new_inhibit(self, new_inhibit):
+    def new_inhibit(self):
         """ Sets the new_inhibit alarm value in the GUI state protobuf"""
-        self.gui_state.new_inhibit = new_inhibit
+        self.gui_state.new_inhibit = True
         self.send_control_update()
 
-    def manual_pressed(self, manual_pressed):
+    def manual_pressed(self):
         """ Sets whether the manual override button has been pressed in the last cycle"""
-        self.gui_state.manual_pressed = manual_pressed
+        self.gui_state.manual_pressed = True
         self.send_control_update()
 
     def run(self):
@@ -79,6 +79,7 @@ class ReceiverThread(QThread):
             self.new_state.emit(state)
             return
 
+
         # Completely the same, no need to emit signals
         if MessageToString(prev_recv) == MessageToString(state):
             return
@@ -86,15 +87,7 @@ class ReceiverThread(QThread):
         if len(state.store.records) == 0 or len(prev_recv.store.records) == 0:
             return
 
-        new_record = state.store.records[0]
-        old_record = prev_recv.store.records[0]
-        
-        
-        # Only update graph on change in position
-        if old_record.x != new_record.x or old_record.y != new_record.y or \
-            old_record.proj_x != new_record.proj_x or \
-            old_record.proj_y != new_record.proj_y:
-            self.new_state.emit(state)
+        self.new_state.emit(state)
 
 
 
@@ -196,15 +189,15 @@ class StateReceiver(QWidget):
         self.set_alarm_enable.emit(state.alarm_enable)
         self.set_alarm_on.emit(state.alarm_on)
 
-    def auto_alarm(self, auto_alarm):
+    def auto_alarm(self):
         """ Updates the auto_alarm value in the GUI state protobuf"""
-        self.sender_thread.auto_alarm(auto_alarm)
+        self.sender_thread.auto_alarm()
 
     def new_inhibit(self):
         """ Sets the new_inhibit alarm value in the GUI state protobuf"""
-        self.sender_thread.new_inhibit(True)
+        self.sender_thread.new_inhibit()
 
-    def manual_pressed(self, manual_pressed):
+    def manual_pressed(self):
         """ Sets whether the manual override button has been pressed in the last cycle"""
-        self.sender_thread.manual_pressed(manual_pressed)
+        self.sender_thread.manual_pressed()
             
