@@ -4,6 +4,7 @@
 import socket
 import threading
 from dynaconf import settings
+import alert_processor
 
 import state_message
 import proto_src.gui_state_pb2 as GStatePB
@@ -103,9 +104,13 @@ def gui_control_callback(data):
     """ A callback for the GUI connection to handle gui_control messages"""
     gui_control = GStatePB.GUI_State()
     gui_control.ParseFromString(data)
-    #AP.update(gui_control)
-    #if hasattr(gui_control, "new_inhibit"):
-    # then update new_inhibit
+    AP = alert_processor.AlertProcessor()
+    if gui_control.new_inhibit:
+        AP.recived_inhibit()
+    if gui_control.auto_alarm:
+        AP.recived_auto_change()
+    if gui_control.manual_pressed:
+        AP.recived_manual_alarm_change()
     return gui_control
 
 class ConnectionHandler:

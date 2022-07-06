@@ -451,7 +451,8 @@ class AlertProcessor:
                 total_no_sub=self.total_no_sub
                 )
 
-    def recived_auto_change(self, auto_status):
+    def recived_auto_change(self):
+        auto_status = not self.auto_toggle
         """Function to call when the auto toggle button is hit.
         param: alarm: T/F what is the status of auto alarm (T = auto, F = manual)"""
         logger.debug(f"recived auto change. status: {auto_status}")
@@ -491,17 +492,13 @@ class AlertProcessor:
                 logger.debug("inhibit pressed but there is no coundown and no alarm. No action taken")
         return
 
-    def recived_toggle_update(self, auto_input, manual_input):
-        if auto_input != self.auto_toggle:
-            self.recived_auto_change(auto_input)
-        if manual_input != self.alarm_ON_manual:
-            self.recived_manual_alarm(manual_input)
 
-    def recived_manual_alarm(self, alarm):
+    def recived_manual_alarm_change(self):
+        alarm = not self.alarm_ON_manual
         """Function to call when the manual button is hit.
         param: alarm: T/F if manual alarm is being enabled or disabled"""
         logger.debug(f"recived manual alarm change. status: {alarm}")
-        
+        alarm
         if alarm:
             self.set_alarm_ON_manual()
         else:
