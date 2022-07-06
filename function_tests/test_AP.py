@@ -274,6 +274,11 @@ class TestAP(unittest.TestCase):
         
         AP.set_alert()
 
+        AP.recived_toggle_update(0,0)
+        AP.recived_toggle_update(1,0)
+        AP.recived_toggle_update(1,1)
+
+        """
         #check if timer started
         self.assertTrue(AP.seconds_till_alarm.is_alive())
 
@@ -385,5 +390,13 @@ class TestAP(unittest.TestCase):
         self.assertFalse(AP.alarm_ON_auto)
         self.assertFalse(AP.alarm_ON_manual)
         self.assertFalse(AP.seconds_till_alarm.is_alive())
+        """
+
+    def test_clear_all(self):
+        AP = alert_processor.AlertProcessor()
+        AP.alarm_enable()
+        AP.reset_AP()
+        self.assertEqual(AP.no_output_alarm, 0)
+
 if __name__ == '__main__':
     unittest.main()

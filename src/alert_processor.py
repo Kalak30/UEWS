@@ -435,6 +435,9 @@ class AlertProcessor:
                 }
 
     def recived_auto_change(self, auto_status):
+        """Function to call when the auto toggle button is hit.
+        param: alarm: T/F what is the status of auto alarm (T = auto, F = manual)"""
+        logger.debug(f"recived auto change. status: {auto_status}")
         self.auto_toggle = auto_status
 
         #manual mode has been switched to automatic
@@ -451,12 +454,15 @@ class AlertProcessor:
             
         return
     def recived_inhibit(self):
+        """Function to call when the inhibit button is hit.
+        param: none"""
+        logger.debug(f"recived inhibit")
         #make sure timer is active
         if self.seconds_till_alarm.is_alive():
             self.seconds_till_alarm.cancel()
 
             #start new timer at 2 minutes
-            self.seconds_till_alarm = self.__get_seconds_alarm_timer__(120)
+            self.seconds_till_alarm = self.__get_seconds_alarm_timer__(30)
             self.seconds_till_alarm.start()
             print("inhibit pressed, reset timer to 2 minutes")
 
@@ -468,9 +474,17 @@ class AlertProcessor:
                 logger.debug("inhibit pressed but there is no coundown and no alarm. No action taken")
         return
 
+    def recived_toggle_update(self, auto_input, manual_input):
+        if auto_input != self.auto_toggle:
+            self.recived_auto_change(auto_input)
+        if manual_input != self.alarm_ON_manual:
+            self.recived_manual_alarm(manual_input)
+
     def recived_manual_alarm(self, alarm):
         """Function to call when the manual button is hit.
         param: alarm: T/F if manual alarm is being enabled or disabled"""
+        logger.debug(f"recived manual alarm change. status: {alarm}")
+        
         if alarm:
             self.set_alarm_ON_manual()
         else:
@@ -496,6 +510,21 @@ class AlertProcessor:
         self.sub_timer.cancel()
         self.data_timer.cancel()
         self.between_timer.cancel()
+        self.seconds_till_alarm.cancel()
+
+    def clear_all_alarns(self):
+        logger.debug("all alarms cleared")
+        self.clear_boundary_alarm()
+        self.clear_depth_alarm()
+        self.clear_invalid_alarm()
+        self.clear_no_output_alarm()
+        self.clear_no_sub_alarm()
+        self.refresh_alarm()
+
+    def reset_AP(self):
+        """Hard reset AP, use for when you switch rest files and such. Resets all timers and alarms"""
+        self.stop_all()
+        self.clear_all_alarns()
 
     def __init__(self):
         """ Init for Alert Processor. Creates all variables, also starts loss of data and
@@ -567,4 +596,3 @@ class AlertProcessor:
         #create timer for seconds till alarm on
         self.seconds_till_alarm = self.__get_seconds_alarm_timer__(10)
         
-
