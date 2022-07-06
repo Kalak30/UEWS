@@ -984,9 +984,9 @@ background-color: rgb(227, 227, 227);
     <signal>set_on_colour(int)</signal>
     <signal>set_off_colour(int)</signal>
     <slot>run()</slot>
-    <slot>auto_alarm(bool)</slot>
+    <slot>auto_alarm()</slot>
     <slot>new_inhibit()</slot>
-    <slot>manual_pressed(bool)</slot>
+    <slot>manual_pressed()</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -1159,9 +1159,9 @@ background-color: rgb(227, 227, 227);
   </connection>
   <connection>
    <sender>ManualOverride</sender>
-   <signal>toggled(bool)</signal>
+   <signal>clicked()</signal>
    <receiver>StateReceiver</receiver>
-   <slot>manual_pressed(bool)</slot>
+   <slot>manual_pressed()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>1072</x>
@@ -1175,9 +1175,9 @@ background-color: rgb(227, 227, 227);
   </connection>
   <connection>
    <sender>AutoAlarmToggle</sender>
-   <signal>toggled(bool)</signal>
+   <signal>clicked()</signal>
    <receiver>StateReceiver</receiver>
-   <slot>auto_alarm(bool)</slot>
+   <slot>auto_alarm()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>1072</x>
