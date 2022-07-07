@@ -172,7 +172,7 @@ class ConnectionHandler:
             state_lis_port, rem_addr = self.gui_conn_establish.recv(callback=gui_establish_callback)
             try:
                 state_lis = (rem_addr[0], state_lis_port)
-                gui_conn = GUIConnection(LOCAL_PORT_ADDR, LOCAL_PORT_ADDR, state_lis)
+                gui_conn = GUIConnection(LOCAL_PORT_ADDR, LOCAL_PORT_ADDR, state_lis, control_callback=gui_control_callback)
                 gui_conn.start_reception(state_msg)
                 self.gui_connections.append(gui_conn)
                 establish_conn_ack = GConnPB.EstablishConnectionAck()
