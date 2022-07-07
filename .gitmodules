@@ -1,0 +1,12 @@
+[submodule "tracking_gui"]
+	path = tracking_gui
+	url = ./tracking_gui
+[submodule "uews_backend"]
+	path = uews_backend
+	url = ./uews_backend
+[submodule "testing_gui"]
+	path = testing_gui
+	url = ./testing_gui/
+[submodule "protobuf"]
+	path = protobuf
+	url = ./protobuf/
