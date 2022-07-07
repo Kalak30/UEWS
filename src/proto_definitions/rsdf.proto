@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-package UEWS;
-
-message RSDF{
-    string raw_rsdf = 1;
-    optional float time_dilation = 2;
-    optional bool reset = 3;
-}
