@@ -163,7 +163,7 @@ class ConnectionHandler:
 
         self.state_msg = state_msg
         self.gui_conn_est_thread = None
-        
+
         self.listen_for_gui_connections()
 
     def await_gui_conn(self, state_msg):
@@ -172,13 +172,15 @@ class ConnectionHandler:
             state_lis_port, rem_addr = self.gui_conn_establish.recv(callback=gui_establish_callback)
             try:
                 state_lis = (rem_addr[0], state_lis_port)
-                gui_conn = GUIConnection(LOCAL_PORT_ADDR, LOCAL_PORT_ADDR, state_lis)
+                gui_conn = GUIConnection(LOCAL_PORT_ADDR, LOCAL_PORT_ADDR, state_lis,
+                                         control_callback=gui_control_callback)
                 gui_conn.start_reception(state_msg)
                 self.gui_connections.append(gui_conn)
                 establish_conn_ack = GConnPB.EstablishConnectionAck()
                 srp, gsp = gui_conn.get_listening_ports()
                 establish_conn_ack.state_req_port = srp
                 establish_conn_ack.gui_state_port = gsp
+                print(f"GSP: {gsp}")
                 self.gui_conn_establish.send_back(establish_conn_ack.SerializeToString())
             except Exception as exception:
                 print(f"Error: {exception}")
