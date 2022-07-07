@@ -19,7 +19,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/tracking_gui/src/tracking_gui_driver.py",
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/src/",
+            "cwd": "${workspaceFolder}/tracking_gui/src/",
             "justMyCode": true
         },
         {
@@ -28,7 +28,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/uews_backend/src/logic_receiving_data.py",
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/src/",
+            "cwd": "${workspaceFolder}/uews_backend/src/",
             "justMyCode": true
         },
         {
@@ -37,7 +37,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/testing_gui/src/testing_gui_driver.py",
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/src/",
+            "cwd": "${workspaceFolder}/testing_gui/src/",
             "justMyCode": true
         }
     ],

@@ -954,7 +954,7 @@ background-color: rgb(227, 227, 227);
   <customwidget>
    <class>StateReceiver</class>
    <extends>QWidget</extends>
-   <header>Tracking_UI.state_receiver</header>
+   <header>src.state_receiver</header>
    <container>1</container>
    <slots>
     <signal>receivedState()</signal>
