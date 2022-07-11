@@ -4,9 +4,28 @@ new uwes with python
 
 ## Getting started
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Clone using 
+```
+git clone -b <branch_name> --single-branch --recurse-submodule git@spork.navsea.navy.mil:nathanbunge/uwes_rebuild.git
+```
+Within each of the following folders:
+- protobufs
+- testing_gui
+- tracking_gui
+- uews_backend
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+run the following:
+```
+python setup.py install
+```
+
+This will pip install each of the packages to your python environment.
+
+Next run:
+```
+pip install -r requirements.txt
+```
+to install the remainder of the dependencies
 
 ## Add your files
 
