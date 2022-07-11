@@ -1,0 +1,20 @@
+[submodule "tracking_gui"]
+	path = tracking_gui
+	url = git@spork.navsea.navy.mil:nathanbunge/uwes_rebuild.git
+	branch = tracking_gui
+	update = checkout
+[submodule "uews_backend"]
+	path = uews_backend
+	url = git@spork.navsea.navy.mil:nathanbunge/uwes_rebuild.git
+	branch = uews_backend
+	update = checkout
+[submodule "testing_gui"]
+	path = testing_gui
+	url = git@spork.navsea.navy.mil:nathanbunge/uwes_rebuild.git
+	branch = testing_gui
+	update = checkout
+[submodule "protobuf"]
+	path = protobuf
+	url = git@spork.navsea.navy.mil:nathanbunge/uwes_rebuild.git
+	branch = protobuf
+	update = checkout
